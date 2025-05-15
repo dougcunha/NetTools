@@ -7,6 +7,7 @@
   - [Prerequisites](#prerequisites)
   - [Build and Run](#build-and-run)
   - [Usage](#usage)
+- [Screenshots](#screenshots)
 - [Contributing](#contributing)
 - [License](#license)
 - [Community & Support](#community--support)
@@ -56,6 +57,12 @@ NetTools st --sln <solution.sln> [--verbose] [--clean] [--restore] [--build]
 - `--clean` ou `-c`: Clean the solution after standardization. Default: False
 - `--restore` ou `-r`: Restore the solution after standardization. Default: False
 - `--build` ou `-b`: Build the solution after standardization. Default: False
+
+## Screenshots
+
+Below is an example of the interactive project selection screen:
+
+![Project selection prompt](screenshot.png)
 
 ## Contributing
 
