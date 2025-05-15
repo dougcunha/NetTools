@@ -62,7 +62,7 @@ NetTools st --sln <solution.sln> [--verbose] [--clean] [--restore] [--build]
 
 Below is an example of the interactive project selection screen:
 
-![Project selection prompt](screenshot.png)
+![Project selection prompt](images/screenshot.png)
 
 ## Contributing
 
