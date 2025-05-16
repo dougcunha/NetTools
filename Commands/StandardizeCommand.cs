@@ -8,36 +8,24 @@ namespace NetTools.Commands;
 /// </summary>
 public sealed class StandardizeCommand : Command
 {
-    private readonly NugetVersionStandardizer _standardizer;
-    private readonly SolutionExplorer _solutionExplorer;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="StandardizeCommand"/> class.
     /// </summary>
     public StandardizeCommand() : base("st", "Standardize NuGet package versions in a solution.")
     {
-        _standardizer = new NugetVersionStandardizer();
-        _solutionExplorer = new SolutionExplorer();
-
-        var solutionFileArgument = new Option<string>
-        (
-            aliases: ["--sln", "-s"],
-            description: "The path to the .sln file to discover projects."
-        );
-
-        var verboseOption = new Option<bool>(["--verbose", "-v"], () => false, "Show detailed output of dotnet commands.");
+        var solutionFileArgument = new Argument<string>("solutionFile", "The path to the .sln file to discover projects.");        
         var cleanOption = new Option<bool>(["--clean", "-c"], () => false, "Clean the solution after standardization.");
         var restoreOption = new Option<bool>(["--restore", "-r"], () => false, "Restore the solution after standardization.");
         var buildOption = new Option<bool>(["--build", "-b"], () => false, "Build the solution after standardization.");
+        var verboseOption = new Option<bool>(["--verbose", "-v"], () => false, "Show detailed output of dotnet commands.");
 
-        AddOption(verboseOption);
-        AddOption(solutionFileArgument);
+        AddArgument(solutionFileArgument);        
         AddOption(cleanOption);
         AddOption(restoreOption);
         AddOption(buildOption);
+        AddOption(verboseOption);
 
-        this.SetHandler
-        (
+        this.SetHandler(
             (solutionFile, verbose, clean, restore, build) =>
             {
                 var options = new StandardizeCommandOptions
@@ -48,9 +36,21 @@ public sealed class StandardizeCommand : Command
                     Restore = restore,
                     Build = build
                 };
-                var selectedProjects = _solutionExplorer.DiscoverProjects(solutionFile);
 
-                _standardizer.StandardizeVersions(options, [..selectedProjects]);
+                var selectedProjects = SolutionExplorer.DiscoverAndSelectProjects(
+                    solutionFile,
+                    "[green]Select the projects to standardize:[/]"
+                );
+
+                if (selectedProjects.Count == 0)
+                {
+                    Spectre.Console.AnsiConsole.MarkupLine("[yellow]No project selected.[/]");
+
+                    return;
+                }
+
+                var standardizer = new NugetVersionStandardizer();
+                standardizer.StandardizeVersions(options, [..selectedProjects]);
             },
             solutionFileArgument, verboseOption, cleanOption, restoreOption, buildOption
         );

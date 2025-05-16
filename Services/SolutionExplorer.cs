@@ -5,14 +5,14 @@ namespace NetTools.Services;
 /// <summary>
 /// Service responsible for exploring .sln files and listing associated .csproj files.
 /// </summary>
-public sealed class SolutionExplorer
+public static class SolutionExplorer
 {
     /// <summary>
     /// Discovers .csproj files from a given .sln file and allows the user to select projects.
     /// </summary>
     /// <param name="solutionFile">The path to the .sln file.</param>
     /// <returns>A list of selected .csproj file paths.</returns>
-    public List<string> DiscoverProjects(string solutionFile)
+    public static List<string> DiscoverAndSelectProjects(string solutionFile, string markupTitle, Func<string, bool>? predicate = null)
     {
         if (string.IsNullOrWhiteSpace(solutionFile) || !File.Exists(solutionFile))
         {
@@ -22,8 +22,6 @@ public sealed class SolutionExplorer
         }
 
         var projectPaths = new List<string>();
-
-        var lines = File.ReadLines(solutionFile).ToList();
 
         var progress = AnsiConsole.Progress()
             .AutoClear(true)
@@ -43,9 +41,10 @@ public sealed class SolutionExplorer
 
         progress.Start(ctx =>
         {
+            var lines = File.ReadLines(solutionFile).ToList();
             var task = ctx.AddTask("Discovering .csproj files", maxValue: lines.Count);                
             task.StartTask();
-
+            
             foreach (var line in lines)
             {
                 if (!line.Trim().StartsWith("Project(") || !line.Contains(".csproj"))
@@ -60,6 +59,15 @@ public sealed class SolutionExplorer
                 if (parts.Length > 5)
                 {
                     var relativePath = parts[5];
+                    var absolutePath = Path.Combine(Path.GetDirectoryName(solutionFile)!, relativePath);
+
+                    if (predicate != null && !predicate(absolutePath))
+                    {
+                        task.Increment(1);
+
+                        continue;
+                    }
+
                     projectPaths.Add(relativePath);
                 }
 
@@ -77,7 +85,7 @@ public sealed class SolutionExplorer
         var selectedProjects = AnsiConsole.Prompt
         (
             new MultiSelectionPrompt<string>()
-                .Title("[green]Select the projects to standardize:[/]")
+                .Title(markupTitle)
                 .NotRequired()
                 .PageSize(20)
                 .MoreChoicesText("[grey](Use space to select, enter to confirm)[/]")

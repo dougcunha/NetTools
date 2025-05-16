@@ -1,5 +1,6 @@
 using NetTools.Commands;
 using Spectre.Console;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace NetTools.Services;
@@ -194,6 +195,46 @@ public sealed class NugetVersionStandardizer
         if (updated)
         {
             doc.Save(csprojPath);
+        }
+    }
+
+    /// <summary>
+    /// Checks if a .csproj contains a given NuGet package (any version).
+    /// </summary>
+    /// <param name="csprojPath">The path to the .csproj file.</param>
+    /// <param name="packageId">The NuGet package id.</param>
+    /// <returns>True if the package exists, false otherwise.</returns>
+    public static bool HasPackage(string csprojPath, string packageId)
+    {
+        var doc = XDocument.Load(csprojPath);
+        return doc.Descendants()
+            .Where(e => e.Name.LocalName == "PackageReference")
+            .Any(pr => string.Equals(pr.Attribute("Include")?.Value, packageId, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Removes a NuGet package from a .csproj file.
+    /// </summary>
+    /// <param name="csprojPath">The path to the .csproj file.</param>
+    /// <param name="packageId">The NuGet package id.</param>
+    public static void RemovePackageFromCsproj(string csprojPath, string packageId)
+    {
+        var doc = XDocument.Load(csprojPath, LoadOptions.PreserveWhitespace);
+        var packageRefs = doc.Descendants().Where(e => e.Name.LocalName == "PackageReference").ToList();
+        var removed = false;
+        foreach (var pr in packageRefs)
+        {
+            if (string.Equals(pr.Attribute("Include")?.Value, packageId, StringComparison.OrdinalIgnoreCase))
+            {
+                pr.Remove();
+                removed = true;
+            }
+        }
+        if (removed)
+        {
+            var settings = new XmlWriterSettings { Indent = true, OmitXmlDeclaration = true, Encoding = new System.Text.UTF8Encoding(false) };
+            using var writer = XmlWriter.Create(csprojPath, settings);
+            doc.Save(writer);
         }
     }
 }
