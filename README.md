@@ -12,18 +12,22 @@
 - [License](#license)
 - [Community & Support](#community--support)
 - [Third-Party Credits](#third-party-credits)
+- [Related Projects](#related-projects)
 
-NetTools is a modern .NET CLI utility for discovering, standardizing, and managing NuGet package versions across multi-project solutions. It helps teams keep dependencies consistent and automates common maintenance tasks for .NET solutions.
+NetTools is a modern, open source .NET CLI utility for discovering, standardizing, and managing NuGet package versions across multi-project solutions. It helps teams keep dependencies consistent and automates common maintenance tasks for .NET solutions.
 
 ## Features
 
 - Discover all NuGet packages and their versions in your solution.
 - Identify packages with multiple versions across projects.
-- Standardize selected packages to the highest version found.
+- Standardize selected packages to the highest version found or a chosen version.
+- Remove a NuGet package from selected projects interactively.
 - Automatically updates all affected `.csproj` files.
-- Runs `dotnet clean` and `dotnet restore` after standardization.
+- Runs `dotnet clean`, `dotnet restore`, and `dotnet build` after operations (optional flags).
 - Interactive CLI with multi-select prompts and progress indicators.
+- Status and progress feedback for all long-running operations.
 - Supports verbose output for troubleshooting.
+- Adheres to C# code style and documentation standards.
 
 ## Getting Started
 
@@ -48,21 +52,39 @@ dotnet run -- st --sln "path/to/your.sln"
 
 ### Usage
 
+#### Standardize NuGet package versions
+
 ```sh
-NetTools st --sln <solution.sln> [--verbose] [--clean] [--restore] [--build]
+NetTools st <solution.sln> [--verbose] [--clean] [--restore] [--build]
 ```
 
-- `--sln` ou `-s`: Path to the solution file to analyze.
 - `--verbose` ou `-v`: Show detailed output of dotnet commands.
-- `--clean` ou `-c`: Clean the solution after standardization. Default: False
-- `--restore` ou `-r`: Restore the solution after standardization. Default: False
-- `--build` ou `-b`: Build the solution after standardization. Default: False
+- `--clean` ou `-c`: Clean the solution after operation. Default: False
+- `--restore` ou `-r`: Restore the solution after operation. Default: False
+- `--build` ou `-b`: Build the solution after operation. Default: False
+
+#### Remove a NuGet package from selected projects
+
+```sh
+NetTools rm <packageId> <solution.sln> [--verbose] [--clean] [--restore] [--build]
+```
+
+- `--verbose` ou `-v`: Show detailed output of dotnet commands.
+- `--clean` ou `-c`: Clean the solution after operation. Default: False
+- `--restore` ou `-r`: Restore the solution after operation. Default: False
+- `--build` ou `-b`: Build the solution after operation. Default: False
+
+All commands are interactive and provide clear feedback. You can select which projects to affect in each operation.
 
 ## Screenshots
 
 Below is an example of the interactive project selection screen:
 
 ![Project selection prompt](images/screenshot.png)
+
+## Related Projects
+
+For updating NuGet packages to their latest available versions, we recommend using [dotnet-outdated](https://github.com/dotnet-outdated/dotnet-outdated). This tool scans your solution and suggests or applies updates to outdated NuGet dependencies automatically. It is a perfect complement to NetTools, which focuses on standardizing and managing package versions across projects, but does not implement update/discovery of new package versions. By combining both tools, you can keep your solution both up-to-date and consistent, without duplicating functionality.
 
 ## Contributing
 
