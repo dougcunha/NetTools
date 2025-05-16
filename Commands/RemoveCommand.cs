@@ -38,15 +38,12 @@ public sealed class RemoveCommand : Command
             (
                 solutionFile,
                 $"[green]Select the projects to remove package » {packageId}:[/]",
+                "[yellow]No .csproj files found in the solution file with the specified package.[/]",
                 csproj => NugetVersionStandardizer.HasPackage(csproj, packageId)
             );
 
             if (projectsWithPackage.Count == 0)
-            {
-                AnsiConsole.MarkupLine("[yellow]No project selected.[/]");
-
                 return;
-            }
 
             var solutionDir = Path.GetDirectoryName(solutionFile ?? string.Empty)!;
 
