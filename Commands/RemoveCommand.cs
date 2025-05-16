@@ -12,7 +12,14 @@ public sealed class RemoveCommand : Command
     public RemoveCommand() : base("rm", "Remove a NuGet package from selected projects in a solution.")
     {
         var packageIdArgument = new Argument<string>("packageId", "The NuGet package id to remove.");
-        var solutionFileArgument = new Argument<string>("solutionFile", "The path to the .sln file to discover projects.");
+
+        var solutionFileArgument = new Argument<string?>
+        (
+            "solutionFile",
+            () => SolutionExplorer.GetOrPromptSolutionFile(null),
+            "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection."
+        );
+
         var cleanOption = new Option<bool>(["--clean", "-c"], () => false, "Clean the solution after removal.");
         var restoreOption = new Option<bool>(["--restore", "-r"], () => false, "Restore the solution after removal.");
         var buildOption = new Option<bool>(["--build", "-b"], () => false, "Build the solution after removal.");
@@ -34,14 +41,14 @@ public sealed class RemoveCommand : Command
                 csproj => NugetVersionStandardizer.HasPackage(csproj, packageId)
             );
 
-            var solutionDir = Path.GetDirectoryName(solutionFile)!;
-
             if (projectsWithPackage.Count == 0)
             {
                 AnsiConsole.MarkupLine("[yellow]No project selected.[/]");
 
                 return;
             }
+
+            var solutionDir = Path.GetDirectoryName(solutionFile ?? string.Empty)!;
 
             foreach (var relativePath in projectsWithPackage)
             {

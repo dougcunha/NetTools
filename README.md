@@ -47,7 +47,7 @@ cd NetTools
 dotnet build
 
 # Run the tool (example)
-dotnet run -- st --sln "path/to/your.sln"
+dotnet run -- st
 ```
 
 ### Usage
@@ -55,24 +55,27 @@ dotnet run -- st --sln "path/to/your.sln"
 #### Standardize NuGet package versions
 
 ```sh
-NetTools st <solution.sln> [--verbose] [--clean] [--restore] [--build]
+NetTools st [<solution.sln>] [--verbose] [--clean] [--restore] [--build]
 ```
 
-- `--verbose` ou `-v`: Show detailed output of dotnet commands.
-- `--clean` ou `-c`: Clean the solution after operation. Default: False
-- `--restore` ou `-r`: Restore the solution after operation. Default: False
-- `--build` ou `-b`: Build the solution after operation. Default: False
+- `<solution.sln>`: (Optional) Path to the solution file. If omitted, the tool will search for a .sln in the current directory or prompt for selection.
+- `--verbose` or `-v`: Show detailed output of dotnet commands.
+- `--clean` or `-c`: Clean the solution after operation. Default: False
+- `--restore` or `-r`: Restore the solution after operation. Default: False
+- `--build` or `-b`: Build the solution after operation. Default: False
 
 #### Remove a NuGet package from selected projects
 
 ```sh
-NetTools rm <packageId> <solution.sln> [--verbose] [--clean] [--restore] [--build]
+NetTools rm <packageId> [<solution.sln>] [--verbose] [--clean] [--restore] [--build]
 ```
 
-- `--verbose` ou `-v`: Show detailed output of dotnet commands.
-- `--clean` ou `-c`: Clean the solution after operation. Default: False
-- `--restore` ou `-r`: Restore the solution after operation. Default: False
-- `--build` ou `-b`: Build the solution after operation. Default: False
+- `<packageId>`: The NuGet package id to remove.
+- `<solution.sln>`: (Optional) Path to the solution file. If omitted, the tool will search for a .sln in the current directory or prompt for selection.
+- `--verbose` or `-v`: Show detailed output of dotnet commands.
+- `--clean` or `-c`: Clean the solution after operation. Default: False
+- `--restore` or `-r`: Restore the solution after operation. Default: False
+- `--build` or `-b`: Build the solution after operation. Default: False
 
 All commands are interactive and provide clear feedback. You can select which projects to affect in each operation.
 
@@ -81,6 +84,10 @@ All commands are interactive and provide clear feedback. You can select which pr
 Below is an example of the interactive project selection screen:
 
 ![Project selection prompt](images/screenshot.png)
+
+### Remove package by id
+
+![Remove package](images/RemoveCommand.png)
 
 ## Related Projects
 

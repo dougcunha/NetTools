@@ -13,7 +13,13 @@ public sealed class StandardizeCommand : Command
     /// </summary>
     public StandardizeCommand() : base("st", "Standardize NuGet package versions in a solution.")
     {
-        var solutionFileArgument = new Argument<string>("solutionFile", "The path to the .sln file to discover projects.");        
+        var solutionFileArgument = new Argument<string?>
+        (
+            "solutionFile",
+            () => SolutionExplorer.GetOrPromptSolutionFile(null),
+            "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection."
+        );
+
         var cleanOption = new Option<bool>(["--clean", "-c"], () => false, "Clean the solution after standardization.");
         var restoreOption = new Option<bool>(["--restore", "-r"], () => false, "Restore the solution after standardization.");
         var buildOption = new Option<bool>(["--build", "-b"], () => false, "Build the solution after standardization.");
@@ -25,7 +31,8 @@ public sealed class StandardizeCommand : Command
         AddOption(buildOption);
         AddOption(verboseOption);
 
-        this.SetHandler(
+        this.SetHandler
+        (
             (solutionFile, verbose, clean, restore, build) =>
             {
                 var options = new StandardizeCommandOptions
@@ -50,7 +57,7 @@ public sealed class StandardizeCommand : Command
                 }
 
                 var standardizer = new NugetVersionStandardizer();
-                standardizer.StandardizeVersions(options, [..selectedProjects]);
+                standardizer.StandardizeVersions(options, [.. selectedProjects]);
             },
             solutionFileArgument, verboseOption, cleanOption, restoreOption, buildOption
         );
