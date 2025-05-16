@@ -15,7 +15,7 @@ public static class SolutionExplorer
     /// <param name="markupTitle">Prompt title for project selection.</param>
     /// <param name="predicate">Optional filter for csproj files.</param>
     /// <returns>A list of selected .csproj file paths.</returns>
-    public static List<string> DiscoverAndSelectProjects(string? solutionFile, string markupTitle, Func<string, bool>? predicate = null)
+    public static List<string> DiscoverAndSelectProjects(string? solutionFile, string markupTitle, string notFoundMessage, Func<string, bool>? predicate = null)
     {
         solutionFile = GetOrPromptSolutionFile(solutionFile);
 
@@ -30,7 +30,8 @@ public static class SolutionExplorer
 
         if (projectPaths.Count == 0)
         {
-            AnsiConsole.MarkupLine("[yellow]No .csproj files found in the solution file.[/]");
+            AnsiConsole.MarkupLine(notFoundMessage);
+
             return [];
         }
 

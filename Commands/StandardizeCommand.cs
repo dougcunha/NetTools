@@ -46,15 +46,12 @@ public sealed class StandardizeCommand : Command
 
                 var selectedProjects = SolutionExplorer.DiscoverAndSelectProjects(
                     solutionFile,
-                    "[green]Select the projects to standardize:[/]"
+                    "[green]Select the projects to standardize:[/]",
+                    "[yellow]No .csproj files found in the solution file.[/]"
                 );
 
                 if (selectedProjects.Count == 0)
-                {
-                    Spectre.Console.AnsiConsole.MarkupLine("[yellow]No project selected.[/]");
-
                     return;
-                }
 
                 var standardizer = new NugetVersionStandardizer();
                 standardizer.StandardizeVersions(options, [.. selectedProjects]);
