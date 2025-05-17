@@ -64,8 +64,10 @@ jobs:
       if: success()
       uses: actions/upload-artifact@v4
       with:
-        name: NetTools-zip
+        name: NetTools
         path: bin/Release/net9.0/win-x64/publish/NetTools-${{ steps.gitversion.outputs.assemblySemVer }}.win-x64.zip
+        if-no-files-found: ignore
+        retention-days: 7
 
     - name: Upload release to GitHub Releases
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
