@@ -50,8 +50,7 @@ jobs:
 
     - name: Copy LICENSE to output
       if: success()
-      run: |
-        copy LICENSE bin/Release/net9.0/win-x64/
+      run: copy LICENSE bin/Release/net9.0/win-x64/
 
     - name: Publish zip artifact
       if: success()
