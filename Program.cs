@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using NetTools.Commands;
 
-var rootCommand = new RootCommand("NetTools - A tool to manage and standardize NuGet packages.");
+var rootCommand = new RootCommand("NetTools - A tool to manage and standardize NuGet packages across multiple projects.");
 rootCommand.AddCommand(new StandardizeCommand());
 rootCommand.AddCommand(new RemoveCommand());
 
