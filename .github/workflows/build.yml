@@ -39,7 +39,7 @@ jobs:
       run: dotnet restore
 
     - name: Publish win-x64
-      run: dotnet publish -c Release -r win-x64 --self-contained false /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
+      run: dotnet publish -c Release -r win-x64 /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
@@ -53,7 +53,6 @@ jobs:
       if: success()
       run: |
         cd bin/Release/net9.0/win-x64/publish
-        del NetTools-*.zip 2>NUL
         7z a NetTools-${{ steps.gitversion.outputs.assemblySemVer }}.win-x64.zip * -xr!*.zip
 
     - name: Upload zip to workflow artifacts
