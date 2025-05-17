@@ -1,5 +1,7 @@
 # NetTools
 
+![Build Status](https://github.com/dougcunha/NetTools/actions/workflows/build.yml/badge.svg?branch=master)
+
 ## Index
 
 - [Features](#features)
