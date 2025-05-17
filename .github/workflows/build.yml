@@ -49,6 +49,10 @@ jobs:
       if: success()
       run: copy LICENSE bin/Release/net9.0/win-x64/publish/
 
+    - name: List publish folder before zip
+      if: success()
+      run: dir bin/Release/net9.0/win-x64/publish
+
     - name: Publish zip artifact
       if: success()
       run: |
