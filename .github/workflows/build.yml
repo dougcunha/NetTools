@@ -14,6 +14,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Fetch all history for GitVersion
+      run: git fetch --prune --unshallow
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
