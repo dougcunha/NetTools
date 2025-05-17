@@ -53,7 +53,8 @@ jobs:
       if: success()
       run: |
         cd bin/Release/net9.0/win-x64/publish
-        7z a NetTools-${{ steps.gitversion.outputs.assemblySemVer }}.win-x64.zip * LICENSE
+        del NetTools-*.zip 2>NUL
+        7z a NetTools-${{ steps.gitversion.outputs.assemblySemVer }}.win-x64.zip * -xr!*.zip
 
     - name: Upload zip to workflow artifacts
       if: success()
