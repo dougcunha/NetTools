@@ -1,6 +1,6 @@
 # NetTools
 
-![Build Status](https://github.com/dougcunha/NetTools/actions/workflows/build.yml/badge.svg?branch=master)
+![Build Status](https://github.com/dougcunha/NetTools/actions/workflows/build.yml/badge.svg?branch=master) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Index
 
