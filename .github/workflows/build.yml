@@ -29,7 +29,8 @@ jobs:
       uses: gittools/actions/gitversion/execute@v0.11.0
 
     - name: Show calculated version
-      run: echo "GitVersion: ${{ steps.gitversion.outputs.fullSemVer }}"
+      run: |
+        echo GitVersion: ${{ steps.gitversion.outputs.fullSemVer }}
 
     - name: Restore dependencies
       run: dotnet restore
