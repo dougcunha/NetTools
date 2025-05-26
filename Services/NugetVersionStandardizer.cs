@@ -144,7 +144,10 @@ public sealed class NugetVersionStandardizer
                 foreach (var selectedDisplay in selected)
                 {
                     var packageId = selectedDisplay.Split(' ')[0];
-                    var maxVersion = multiVersionPackages[packageId].OrderByDescending(v => v, StringComparer.OrdinalIgnoreCase).First();
+                    
+                    var maxVersion = multiVersionPackages[packageId].OrderByDescending(v => v, StringComparer.OrdinalIgnoreCase)
+                        .Where(static v => !v.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+                        .First();
 
                     foreach (var (csprojPath, pkgs) in projectPackageMap)
                     {
