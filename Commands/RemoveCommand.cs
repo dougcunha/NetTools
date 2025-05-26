@@ -22,7 +22,7 @@ public sealed class RemoveCommand : Command
         var solutionFileArgument = new Argument<string?>
         (
             "solutionFile",
-            () => solutionExplorer.GetOrPromptSolutionFile(null),
+            () => null,
             "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection."
         );
 
@@ -40,6 +40,8 @@ public sealed class RemoveCommand : Command
 
         this.SetHandler((packageId, solutionFile, clean, restore, build, verbose) =>
         {
+            solutionFile = solutionExplorer.GetOrPromptSolutionFile(solutionFile);
+
             var projectsWithPackage = solutionExplorer.DiscoverAndSelectProjects
             (
                 solutionFile,

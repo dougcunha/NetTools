@@ -16,7 +16,7 @@ public sealed class StandardizeCommand : Command
         var solutionFileArgument = new Argument<string?>
         (
             "solutionFile",
-            () => solutionExplorer.GetOrPromptSolutionFile(null),
+            () => null,
             "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection."
         );
 
@@ -37,7 +37,7 @@ public sealed class StandardizeCommand : Command
             {
                 var options = new StandardizeCommandOptions
                 {
-                    SolutionFile = solutionFile,
+                    SolutionFile = solutionExplorer.GetOrPromptSolutionFile(solutionFile),
                     Verbose = verbose,
                     Clean = clean,
                     Restore = restore,
@@ -46,7 +46,7 @@ public sealed class StandardizeCommand : Command
 
                 var selectedProjects = solutionExplorer.DiscoverAndSelectProjects
                 (
-                    solutionFile,
+                    options.SolutionFile,
                     "[green]Select the projects to standardize:[/]",
                     "[yellow]No .csproj files found in the solution file.[/]"
                 );
@@ -56,7 +56,11 @@ public sealed class StandardizeCommand : Command
 
                 standardizer.StandardizeVersions(options, [.. selectedProjects]);
             },
-            solutionFileArgument, verboseOption, cleanOption, restoreOption, buildOption
+            solutionFileArgument,
+            verboseOption,
+            cleanOption,
+            restoreOption,
+            buildOption
         );
     }
 }
