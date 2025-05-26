@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using Spectre.Console;
 
 namespace NetTools.Services;
@@ -5,7 +6,7 @@ namespace NetTools.Services;
 /// <summary>
 /// Service responsible for exploring .sln files and listing associated .csproj files.
 /// </summary>
-public static class SolutionExplorer
+public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSystem) 
 {
     /// <summary>
     /// Discovers .csproj files from a given .sln file and allows the user to select projects.
@@ -15,13 +16,13 @@ public static class SolutionExplorer
     /// <param name="markupTitle">Prompt title for project selection.</param>
     /// <param name="predicate">Optional filter for csproj files.</param>
     /// <returns>A list of selected .csproj file paths.</returns>
-    public static List<string> DiscoverAndSelectProjects(string? solutionFile, string markupTitle, string notFoundMessage, Func<string, bool>? predicate = null)
+    public List<string> DiscoverAndSelectProjects(string? solutionFile, string markupTitle, string notFoundMessage, Func<string, bool>? predicate = null)
     {
         solutionFile = GetOrPromptSolutionFile(solutionFile);
 
         if (string.IsNullOrWhiteSpace(solutionFile) || !File.Exists(solutionFile))
         {
-            AnsiConsole.Markup("[red]Solution file not found or invalid.[/]\n");
+            console.Markup("[red]Solution file not found or invalid.[/]\n");
 
             return [];
         }
@@ -30,12 +31,12 @@ public static class SolutionExplorer
 
         if (projectPaths.Count == 0)
         {
-            AnsiConsole.MarkupLine(notFoundMessage);
+            console.MarkupLine(notFoundMessage);
 
             return [];
         }
 
-        var selectedProjects = AnsiConsole.Prompt
+        var selectedProjects = console.Prompt
         (
             new MultiSelectionPrompt<string>()
                 .Title(markupTitle)
@@ -49,13 +50,23 @@ public static class SolutionExplorer
         return selectedProjects;
     }
 
-    public static string? GetOrPromptSolutionFile(string? solutionFile)
+    /// <summary>
+    /// Gets the solution file path, prompting the user if not provided.
+    /// If solutionFile is null or empty, searches for .sln files in the current directory.
+    /// </summary>
+    /// <param name="solutionFile">
+    /// The path to the .sln file (optional).
+    /// </param>
+    /// <returns>
+    /// The path to the .sln file, or null if not found.
+    /// </returns>
+    public string? GetOrPromptSolutionFile(string? solutionFile)
     {
         if (!string.IsNullOrWhiteSpace(solutionFile))
             return solutionFile;
 
-        var currentDir = Directory.GetCurrentDirectory();
-        var slnFiles = Directory.GetFiles(currentDir, "*.sln", SearchOption.TopDirectoryOnly);
+        var currentDir = fileSystem.Directory.GetCurrentDirectory();
+        var slnFiles = fileSystem.Directory.GetFiles(currentDir, "*.sln", SearchOption.TopDirectoryOnly);
 
         if (slnFiles.Length == 0)
             return null;
@@ -63,7 +74,7 @@ public static class SolutionExplorer
         if (slnFiles.Length == 1)
         {
             var found = slnFiles[0];
-            AnsiConsole.MarkupLine($"[green]Found solution:[/] [bold]{Path.GetFileName(found)}[/]");
+            console.MarkupLine($"[green]Found solution:[/] [bold]{Path.GetFileName(found)}[/]");
 
             return found;
         }
@@ -73,7 +84,7 @@ public static class SolutionExplorer
             .Where(n => !string.IsNullOrWhiteSpace(n))
             .Select(n => n!).ToList();
 
-        var chosen = AnsiConsole.Prompt(
+        var chosen = console.Prompt(
             new SelectionPrompt<string>()
                 .Title("[yellow]Select the solution file:[/]")
                 .PageSize(10)
@@ -85,12 +96,12 @@ public static class SolutionExplorer
             : Path.Combine(currentDir, chosen);
     }
 
-    private static List<string> DiscoverProjectPaths(string solutionFile, Func<string, bool>? predicate)
+    private List<string> DiscoverProjectPaths(string solutionFile, Func<string, bool>? predicate)
     {
         var projectPaths = new List<string>();
-        var lines = File.ReadLines(solutionFile).ToList();
+        var lines = fileSystem.File.ReadLines(solutionFile).ToList();
 
-        var progress = AnsiConsole.Progress()
+        var progress = console.Progress()
             .AutoClear(true)
             .Columns
             (
@@ -120,15 +131,19 @@ public static class SolutionExplorer
                 }
 
                 var parts = line.Split('"');
+                
                 if (parts.Length > 5)
                 {
                     var relativePath = parts[5];
                     var absolutePath = Path.Combine(Path.GetDirectoryName(solutionFile)!, relativePath);
+
                     if (predicate != null && !predicate(absolutePath))
                     {
                         task.Increment(1);
+
                         continue;
                     }
+
                     projectPaths.Add(relativePath);
                 }
                 task.Increment(1);

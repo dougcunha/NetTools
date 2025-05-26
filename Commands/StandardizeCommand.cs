@@ -11,12 +11,12 @@ public sealed class StandardizeCommand : Command
     /// <summary>
     /// Initializes a new instance of the <see cref="StandardizeCommand"/> class.
     /// </summary>
-    public StandardizeCommand() : base("st", "Standardize NuGet package versions in a solution.")
+    public StandardizeCommand(NugetVersionStandardizer standardizer, SolutionExplorer solutionExplorer) : base("st", "Standardize NuGet package versions in a solution.")
     {
         var solutionFileArgument = new Argument<string?>
         (
             "solutionFile",
-            () => SolutionExplorer.GetOrPromptSolutionFile(null),
+            () => solutionExplorer.GetOrPromptSolutionFile(null),
             "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection."
         );
 
@@ -44,7 +44,8 @@ public sealed class StandardizeCommand : Command
                     Build = build
                 };
 
-                var selectedProjects = SolutionExplorer.DiscoverAndSelectProjects(
+                var selectedProjects = solutionExplorer.DiscoverAndSelectProjects
+                (
                     solutionFile,
                     "[green]Select the projects to standardize:[/]",
                     "[yellow]No .csproj files found in the solution file.[/]"
@@ -53,7 +54,6 @@ public sealed class StandardizeCommand : Command
                 if (selectedProjects.Count == 0)
                     return;
 
-                var standardizer = new NugetVersionStandardizer();
                 standardizer.StandardizeVersions(options, [.. selectedProjects]);
             },
             solutionFileArgument, verboseOption, cleanOption, restoreOption, buildOption

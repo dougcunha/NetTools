@@ -6,42 +6,31 @@ namespace NetTools.Services;
 /// <summary>
 /// Service responsible for running dotnet CLI commands in the solution context.
 /// </summary>
-public sealed class DotnetCommandRunner
+public sealed class DotnetCommandRunner(IAnsiConsole console, IProcessRunner processRunner) 
 {
-    private readonly string? _solutionFile;
-    private readonly bool _verbose;
-    private readonly string _solutionDirectory;
-
-    public DotnetCommandRunner(string solutionDirectory, string? solutionFile = null, bool verbose = false)
-    {
-        _solutionDirectory = solutionDirectory;
-        _solutionFile = solutionFile;
-        _verbose = verbose;
-    }
-
     /// <summary>
     /// Executes 'dotnet clean' in the specified solution directory.
     /// </summary>
     /// <param name="solutionDirectory">The path to the solution directory.</param>
     /// <param name="solutionOrProjectFile">The solution or project file to clean (optional).</param>
-    public bool Clean()
-        => RunDotnetCommand("clean", _solutionDirectory, _solutionFile, _verbose);
+    public bool Clean(string solutionDirectory, string? solutionFile = null, bool verbose = false)
+        => RunDotnetCommand("clean", solutionDirectory, solutionFile, verbose);
 
     /// <summary>
     /// Executes 'dotnet restore' in the specified solution directory.
     /// </summary>
     /// <param name="solutionDirectory">The path to the solution directory.</param>
     /// <param name="solutionOrProjectFile">The solution or project file to restore (optional).</param>
-    public bool Restore()
-        => RunDotnetCommand("restore", _solutionDirectory, _solutionFile, _verbose);
+    public bool Restore(string solutionDirectory, string? solutionFile = null, bool verbose = false)
+        => RunDotnetCommand("restore", solutionDirectory, solutionFile, verbose);
 
     /// <summary>
     /// Executes 'dotnet build' in the specified solution directory.
     /// </summary>
     /// <param name="solutionDirectory">The path to the solution directory.</param>
     /// <param name="solutionOrProjectFile">The solution or project file to build (optional).</param>
-    public bool Build()
-        => RunDotnetCommand("build", _solutionDirectory, _solutionFile, _verbose);
+    public bool Build(string solutionDirectory, string? solutionFile = null, bool verbose = false)
+        => RunDotnetCommand("build", solutionDirectory, solutionFile, verbose);
 
     /// <summary>
     /// Runs a sequence of dotnet CLI commands based on the provided options.
@@ -53,15 +42,15 @@ public sealed class DotnetCommandRunner
     /// This method runs the commands in the order: clean, restore, build.
     /// If any command fails, the subsequent commands are not executed.
     /// </remarks>    
-    public bool RunSequentialCommands(bool clean, bool restore, bool build)
+    public bool RunSequentialCommands(string solutionDirectory, string? solutionFile = null, bool verbose = false,bool clean = false, bool restore = false, bool build = false)
     {
         if (clean)
         {
-            AnsiConsole.MarkupLine("[yellow]Cleaning the solution...[/]");
+            console.MarkupLine("[yellow]Cleaning the solution...[/]");
 
-            if (!Clean())
+            if (!Clean(solutionDirectory, solutionFile, verbose))
             {
-                AnsiConsole.MarkupLine("[red]Failed to clean the solution.[/]");
+                console.MarkupLine("[red]Failed to clean the solution.[/]");
 
                 return false;
             }
@@ -69,11 +58,11 @@ public sealed class DotnetCommandRunner
 
         if (restore)
         {
-            AnsiConsole.MarkupLine("[yellow]Restoring the solution...[/]");
+            console.MarkupLine("[yellow]Restoring the solution...[/]");
 
-            if (!Restore())
+            if (!Restore(solutionDirectory, solutionFile, verbose))
             {
-                AnsiConsole.MarkupLine("[red]Failed to restore the solution.[/]");
+                console.MarkupLine("[red]Failed to restore the solution.[/]");
 
                 return false;
             }
@@ -81,11 +70,11 @@ public sealed class DotnetCommandRunner
 
         if (build)
         {
-            AnsiConsole.MarkupLine("[yellow]Building the solution...[/]");
-            
-            if (!Build())
+            console.MarkupLine("[yellow]Building the solution...[/]");
+
+            if (!Build(solutionDirectory, solutionFile, verbose))
             {
-                AnsiConsole.MarkupLine("[red]Failed to build the solution.[/]");
+                console.MarkupLine("[red]Failed to build the solution.[/]");
 
                 return false;
             }
@@ -101,46 +90,40 @@ public sealed class DotnetCommandRunner
     /// <param name="workingDirectory">The directory to run the command in.</param>
     /// <param name="solutionOrProjectFile">The solution or project file to target (optional).</param>
     /// <param name="verbose">Indicates whether verbose output is enabled.</param>
-    private static bool RunDotnetCommand(string command, string workingDirectory, string? solutionOrProjectFile = null, bool verbose = false)
+    private bool RunDotnetCommand(string command, string workingDirectory, string? solutionOrProjectFile = null, bool verbose = false)
     {
         var argument = solutionOrProjectFile is not null ? $"{command} \"{solutionOrProjectFile}\"" : command;
         var success = false;
 
-        AnsiConsole.Status()
+        console.Status()
             .Spinner(Spinner.Known.Dots)
             .Start($"dotnet {argument}...", ctx =>
-            {
-                var process = new Process
+            {                
+                var startInfo = new ProcessStartInfo
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "dotnet",
-                        Arguments = argument,
-                        WorkingDirectory = workingDirectory,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
+                    FileName = "dotnet",
+                    Arguments = argument,
+                    WorkingDirectory = workingDirectory,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
                 };
 
-                process.OutputDataReceived += (s, e) =>
+
+                void OutputDataReceived(object s, DataReceivedEventArgs e)
                 {
                     if (verbose && !string.IsNullOrWhiteSpace(e.Data))
-                        AnsiConsole.WriteLine(e.Data);
-                };
+                        console.WriteLine(e.Data);
+                }
 
-                process.ErrorDataReceived += (s, e) =>
+                void ErrorDataReceived(object s, DataReceivedEventArgs e)
                 {
                     if (verbose && !string.IsNullOrWhiteSpace(e.Data))
-                        AnsiConsole.MarkupLineInterpolated($"[red]{e.Data}[/]");
-                };
+                        console.MarkupLineInterpolated($"[red]{e.Data}[/]");
+                }
 
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                process.WaitForExit();
-                success = process.ExitCode == 0;
+                success = processRunner.Run(startInfo, OutputDataReceived, ErrorDataReceived) == 0; 
             });
 
         return success;

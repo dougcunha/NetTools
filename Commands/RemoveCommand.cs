@@ -9,14 +9,20 @@ namespace NetTools.Commands;
 /// </summary>
 public sealed class RemoveCommand : Command
 {
-    public RemoveCommand() : base("rm", "Remove a NuGet package from selected projects in a solution.")
+    public RemoveCommand
+    (
+        IAnsiConsole console,
+        SolutionExplorer solutionExplorer,
+        NugetVersionStandardizer standardizer,
+        DotnetCommandRunner dotnetRunner
+    ) : base("rm", "Remove a NuGet package from selected projects in a solution.")
     {
         var packageIdArgument = new Argument<string>("packageId", "The NuGet package id to remove.");
 
         var solutionFileArgument = new Argument<string?>
         (
             "solutionFile",
-            () => SolutionExplorer.GetOrPromptSolutionFile(null),
+            () => solutionExplorer.GetOrPromptSolutionFile(null),
             "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection."
         );
 
@@ -34,12 +40,12 @@ public sealed class RemoveCommand : Command
 
         this.SetHandler((packageId, solutionFile, clean, restore, build, verbose) =>
         {
-            var projectsWithPackage = SolutionExplorer.DiscoverAndSelectProjects
+            var projectsWithPackage = solutionExplorer.DiscoverAndSelectProjects
             (
                 solutionFile,
                 $"[green]Select the projects to remove package » {packageId}:[/]",
                 "[yellow]No .csproj files found in the solution file with the specified package.[/]",
-                csproj => NugetVersionStandardizer.HasPackage(csproj, packageId)
+                csproj => standardizer.HasPackage(csproj, packageId)
             );
 
             if (projectsWithPackage.Count == 0)
@@ -50,13 +56,12 @@ public sealed class RemoveCommand : Command
             foreach (var relativePath in projectsWithPackage)
             {
                 var csprojPath = Path.Combine(solutionDir, relativePath);
-                NugetVersionStandardizer.RemovePackageFromCsproj(csprojPath, packageId);
-                AnsiConsole.MarkupLine($"[green]Removed '{packageId}' from {relativePath}.[/]");
+                standardizer.RemovePackageFromCsproj(csprojPath, packageId);
+                console.MarkupLine($"[green]Removed '{packageId}' from {relativePath}.[/]");
             }
 
             var solutionName = Path.GetFileName(solutionFile);
-            var dotnetRunner = new DotnetCommandRunner(solutionDir, solutionName, verbose);
-            dotnetRunner.RunSequentialCommands(clean, restore, build);
+            dotnetRunner.RunSequentialCommands(solutionDir, solutionName, verbose, clean, restore, build);
         }, packageIdArgument, solutionFileArgument, cleanOption, restoreOption, buildOption, verboseOption);
     }
 }
