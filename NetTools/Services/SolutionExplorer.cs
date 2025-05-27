@@ -40,7 +40,7 @@ public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSyste
             return [];
         }
 
-        return console.Prompt
+        return [.. console.Prompt
         (
             new MultiSelectionPrompt<string>()
                 .Title(markupTitle)
@@ -49,7 +49,7 @@ public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSyste
                 .MoreChoicesText("[grey](Use space to select, enter to confirm)[/]")
                 .InstructionsText("[grey](Press [blue]<space>[/] to select, [green]<enter>[/] to confirm)[/]")
                 .AddChoiceGroup("Select all", projectPaths.OrderBy(p => p))
-        ).ToList();
+        )];
     }
 
     /// <summary>
