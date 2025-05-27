@@ -9,13 +9,12 @@ namespace NetTools.Commands;
 /// Command to remove a NuGet package from selected projects in a solution.
 /// </summary>
 public sealed class RemoveCommand : Command
-{
-    public RemoveCommand
+{    public RemoveCommand
     (
         IAnsiConsole console,
         SolutionExplorer solutionExplorer,
-        CsprojHelpers csprojHelpers,
-        DotnetCommandRunner dotnetRunner
+        ICsprojHelpers csprojHelpers,
+        IDotnetCommandRunner dotnetRunner
     ) : base("rm", "Remove a NuGet package from selected projects in a solution.")
     {
         var packageIdArgument = new Argument<string>("packageId", "The NuGet package id to remove.");

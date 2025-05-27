@@ -10,11 +10,10 @@ namespace NetTools.Services;
 public sealed class NugetVersionStandardizer
 (
     IAnsiConsole console,
-    DotnetCommandRunner dotnetRunner,
-    CsprojHelpers csprojHelpers
+    IDotnetCommandRunner dotnetRunner,
+    ICsprojHelpers csprojHelpers
 )
-{
-    /// <summary>
+{    /// <summary>
     /// Standardizes the NuGet package versions in the given solution directory by updating .csproj files.
     /// </summary>
     /// <param name="options">
@@ -39,9 +38,7 @@ public sealed class NugetVersionStandardizer
             console.MarkupLine("[green]No packages with multiple versions found.[/]");
 
             return;
-        }
-
-        var choices = multiVersionPackages.Select(static kvp => $"{kvp.Key} ({string.Join(", ", kvp.Value.Order())})").ToList();
+        }        var choices = multiVersionPackages.Select(static kvp => $"{kvp.Key} ({string.Join(", ", kvp.Value.Order())})").ToList();
 
         var selected = console.Prompt
         (

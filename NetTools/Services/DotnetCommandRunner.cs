@@ -6,7 +6,7 @@ namespace NetTools.Services;
 /// <summary>
 /// Service responsible for running dotnet CLI commands in the solution context.
 /// </summary>
-public sealed class DotnetCommandRunner(IAnsiConsole console, IProcessRunner processRunner)
+public sealed class DotnetCommandRunner(IAnsiConsole console, IProcessRunner processRunner) : IDotnetCommandRunner
 {
     /// <summary>
     /// Executes 'dotnet clean' in the specified solution directory.

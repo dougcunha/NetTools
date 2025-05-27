@@ -24,7 +24,7 @@ public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSyste
     {
         solutionFile = GetOrPromptSolutionFile(solutionFile);
 
-        if (string.IsNullOrWhiteSpace(solutionFile) || !File.Exists(solutionFile))
+        if (string.IsNullOrWhiteSpace(solutionFile) || !fileSystem.File.Exists(solutionFile))
         {
             console.Markup("[red]Solution file not found or invalid.[/]\n");
 
@@ -48,7 +48,7 @@ public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSyste
                 .PageSize(20)
                 .MoreChoicesText("[grey](Use space to select, enter to confirm)[/]")
                 .InstructionsText("[grey](Press [blue]<space>[/] to select, [green]<enter>[/] to confirm)[/]")
-                .AddChoiceGroup("Select all", projectPaths.OrderBy(p => p))
+                .AddChoiceGroup("Select all", projectPaths.Order())
         )];
     }
 

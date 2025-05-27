@@ -23,16 +23,15 @@ public static class Startup
     /// <param name="services">The <see cref="IServiceCollection"/> to which the services will be added.</param>
     /// <returns>The same <see cref="IServiceCollection"/> instance, allowing for method chaining.</returns>
     public static IServiceCollection RegisterServices(this IServiceCollection services)
-    {
-        services.AddSingleton<StandardizeCommand>();
+    {        services.AddSingleton<StandardizeCommand>();
         services.AddSingleton<RemoveCommand>();
         services.AddSingleton<UpdateCommand>();
-        services.AddSingleton<CsprojHelpers>();
+        services.AddSingleton<ICsprojHelpers, CsprojHelpers>();
         services.AddSingleton<IFileSystem, FileSystem>();
         services.AddSingleton<NugetVersionStandardizer>();
         services.AddSingleton<IXmlService, XmlService>();
         services.AddSingleton<IProcessRunner, ProcessRunner>();
-        services.AddSingleton<DotnetCommandRunner>();
+        services.AddSingleton<IDotnetCommandRunner, DotnetCommandRunner>();
         services.AddSingleton<SolutionExplorer>();
         services.AddHttpClient<INugetService, NugetService>();
         services.AddSingleton(AnsiConsole.Console);

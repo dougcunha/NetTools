@@ -7,7 +7,7 @@ using Spectre.Console;
 
 namespace NetTools.Helpers;
 
-public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService, IAnsiConsole console)
+public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService, IAnsiConsole console) : ICsprojHelpers
 {
     private static readonly XmlWriterSettings _xmlWriterSettings = new()
     {

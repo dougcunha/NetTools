@@ -9,23 +9,21 @@ namespace NetTools.Commands;
 /// Command to check for NuGet package updates in selected projects.
 /// </summary>
 public sealed class UpdateCommand : Command
-{
-    private readonly SolutionExplorer _solutionExplorer;
+{    private readonly SolutionExplorer _solutionExplorer;
     private readonly INugetService _nugetService;
     private readonly IAnsiConsole _console;
-    private readonly CsprojHelpers _csprojHelpers;
-    private readonly DotnetCommandRunner _dotnetRunner;
+    private readonly ICsprojHelpers _csprojHelpers;
+    private readonly IDotnetCommandRunner _dotnetRunner;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateCommand"/> class.
     /// </summary>
     public UpdateCommand
     (
-        SolutionExplorer solutionExplorer,
-        INugetService nugetService,
+        SolutionExplorer solutionExplorer,        INugetService nugetService,
         IAnsiConsole console,
-        CsprojHelpers csprojHelpers,
-        DotnetCommandRunner dotnetRunner
+        ICsprojHelpers csprojHelpers,
+        IDotnetCommandRunner dotnetRunner
     ) : base("upd", "Check for NuGet package updates in selected projects.")
     {
         _solutionExplorer = solutionExplorer;
