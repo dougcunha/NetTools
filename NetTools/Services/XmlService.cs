@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -6,6 +7,7 @@ namespace NetTools.Services;
 /// <summary>
 /// XML service for loading and writing XML documents.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class XmlService : IXmlService
 {
     /// <inheritdoc />

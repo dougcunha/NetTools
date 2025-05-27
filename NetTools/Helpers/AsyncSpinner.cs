@@ -1,10 +1,12 @@
-﻿using Spectre.Console;
+﻿using System.Diagnostics.CodeAnalysis;
+using Spectre.Console;
 
 namespace NetTools.Helpers;
 
 /// <summary>
 /// Class to show an asynchronous spinner in the console.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class AsyncSpinner : IAsyncDisposable, IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();

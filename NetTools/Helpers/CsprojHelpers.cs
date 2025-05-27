@@ -29,9 +29,8 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
             return packages;
 
         var doc = xmlService.Load(csprojPath);
-        var packageRefs = doc.Descendants().Where(e => e.Name.LocalName == "PackageReference");
 
-        foreach (var pr in packageRefs)
+        foreach (var pr in doc.Descendants().Where(static e => e.Name.LocalName == "PackageReference"))
         {
             var id = pr.Attribute("Include")?.Value;
             var version = pr.Attribute("Version")?.Value ?? pr.Element("Version")?.Value;
@@ -46,23 +45,23 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
     /// <summary>
     /// Gets all packages from the selected projects and maps them to their versions.
     /// </summary>
-    /// <param name="projects">
+    /// <param name="projectsPackages">
     /// The list of project paths to scan for packages.
     /// </param>
     /// <returns>
     /// A dictionary containing all unique package IDs and their versions across the projects.
     /// </returns>
-    public Dictionary<string, string> RetrieveUniquePackageVersions(Dictionary<string, List<Package>> projectsPackages)
+    public static Dictionary<string, string> RetrieveUniquePackageVersions(Dictionary<string, List<Package>> projectsPackages)
     {
         Dictionary<string, string> allPackages = [];
 
-        foreach (var (project, packages) in projectsPackages)
+        foreach (var (_, packages) in projectsPackages)
         {
             foreach (var pkg in packages)
             {
                 // Compare the versions and keep the latest one
                 allPackages[pkg.Id] = allPackages.TryGetValue(pkg.Id, out var value)
-                    ? NugetVersionComparer.GetGreaterVersion(value, pkg.Version) 
+                    ? NugetVersionComparer.GetGreaterVersion(value, pkg.Version)
                     : pkg.Version;
             }
         }
@@ -115,7 +114,7 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
     /// <returns>
     /// A list of tuples where each tuple contains the package ID, installed version, and latest version.
     /// </returns>
-    public List<(string PackageId, string Installed, string? Latest)> GetOutdatedPackages
+    public static List<(string PackageId, string Installed, string? Latest)> GetOutdatedPackages
     (
         Dictionary<string, string> allPackages,
         Dictionary<string, string?> latestVersions,
@@ -169,7 +168,7 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
             {
                 var pkg = packages.FirstOrDefault(p => p.Id == pkgId);
 
-                if (pkg == default)
+                if (pkg is null)
                     continue;
 
                 var newVersion = latestVersions[pkgId];
@@ -196,16 +195,13 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
         var doc = xmlService.Load(csprojPath, LoadOptions.PreserveWhitespace);
 
         var packageRefs = doc.Descendants()
-            .Where(e => e.Name.LocalName == "PackageReference")
+            .Where(static e => e.Name.LocalName == "PackageReference")
             .ToList();
 
         var removed = false;
 
-        foreach (var pr in packageRefs)
+        foreach (var pr in packageRefs.Where(pr => string.Equals(pr.Attribute("Include")?.Value, packageId, StringComparison.OrdinalIgnoreCase)))
         {
-            if (!string.Equals(pr.Attribute("Include")?.Value, packageId, StringComparison.OrdinalIgnoreCase))
-                continue;
-
             pr.Remove();
             removed = true;
         }
@@ -226,11 +222,11 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
         var doc = xmlService.Load(csprojPath, LoadOptions.PreserveWhitespace);
 
         return doc.Descendants()
-            .Where(e => e.Name.LocalName == "PackageReference")
+            .Where(static e => e.Name.LocalName == "PackageReference")
             .Any(pr => string.Equals(pr.Attribute("Include")?.Value, packageId, StringComparison.OrdinalIgnoreCase));
     }
-    
-    
+
+
     /// <summary>
     /// Updates the version of a NuGet package in a .csproj file.
     /// </summary>
@@ -240,29 +236,28 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
     public void UpdatePackageVersionInCsproj(string csprojPath, string packageId, string newVersion)
     {
         var doc = xmlService.Load(csprojPath, LoadOptions.PreserveWhitespace);
-        var packageRefs = doc.Descendants().Where(e => e.Name.LocalName == "PackageReference");
         var updated = false;
 
-        foreach (var pr in packageRefs)
+        foreach (var pr in doc.Descendants().Where(static e => e.Name.LocalName == "PackageReference"))
         {
             var id = pr.Attribute("Include")?.Value;
 
-            if (id == packageId)
+            if (id != packageId)
+                continue;
+
+            if (pr.Attribute("Version") != null)
             {
-                if (pr.Attribute("Version") != null)
-                {
-                    pr.Attribute("Version")!.Value = newVersion;
-                    updated = true;
+                pr.Attribute("Version")!.Value = newVersion;
+                updated = true;
 
-                    continue;
-                }
-
-                if (pr.Element("Version") != null)
-                {
-                    pr.Element("Version")!.Value = newVersion;
-                    updated = true;
-                }
+                continue;
             }
+
+            if (pr.Element("Version") == null)
+                continue;
+
+            pr.Element("Version")!.Value = newVersion;
+            updated = true;
         }
 
         if (updated)

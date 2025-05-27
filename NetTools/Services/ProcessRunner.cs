@@ -1,8 +1,10 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NetTools.Services;
 
 /// <inheritdoc/>
+[ExcludeFromCodeCoverage]
 public sealed class ProcessRunner : IProcessRunner
 {
     /// <inheritdoc/>

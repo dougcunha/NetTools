@@ -14,7 +14,7 @@ public static class NugetVersionComparer
     {
         var v1 = NuGetVersion.Parse(version1);
         var v2 = NuGetVersion.Parse(version2);
-        
+
         return v1 > v2 ? version1 : version2;
     }
 

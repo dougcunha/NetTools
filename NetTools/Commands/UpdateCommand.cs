@@ -120,10 +120,10 @@ public sealed class UpdateCommand : Command
             return false;
         
         var projectPackages = _csprojHelpers.GetPackagesFromProjects(projects);
-        var consolidatedPackages = _csprojHelpers.RetrieveUniquePackageVersions(projectPackages);
+        var consolidatedPackages = CsprojHelpers.RetrieveUniquePackageVersions(projectPackages);
         var latestVersions = await FetchLatestPackageVersionsAsync(consolidatedPackages, includePrerelease).ConfigureAwait(false);
 
-        var outdated = _csprojHelpers.GetOutdatedPackages(consolidatedPackages, latestVersions);
+        var outdated = CsprojHelpers.GetOutdatedPackages(consolidatedPackages, latestVersions);
 
         if (outdated.Count == 0)
         {

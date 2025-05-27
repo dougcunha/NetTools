@@ -41,7 +41,7 @@ public sealed class NugetVersionStandardizer
             return;
         }
 
-        var choices = multiVersionPackages.Select(kvp => $"{kvp.Key} ({string.Join(", ", kvp.Value.OrderBy(v => v))})").ToList();
+        var choices = multiVersionPackages.Select(static kvp => $"{kvp.Key} ({string.Join(", ", kvp.Value.Order())})").ToList();
 
         var selected = console.Prompt
         (
@@ -51,7 +51,7 @@ public sealed class NugetVersionStandardizer
                 .PageSize(20)
                 .MoreChoicesText("[grey](Use space to select, enter to confirm)[/]")
                 .InstructionsText("[grey](Press [blue]<space>[/] to select, [green]<enter>[/] to confirm)[/]")
-                .AddChoiceGroup("Select all", choices.OrderBy(c => c))
+                .AddChoiceGroup("Select all", choices.Order())
         );
 
         if (selected.Count == 0)
@@ -110,8 +110,8 @@ public sealed class NugetVersionStandardizer
         }
 
         var multiVersionPackages = packageVersions
-            .Where(kvp => kvp.Value.Count > 1)
-            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            .Where(static kvp => kvp.Value.Count > 1)
+            .ToDictionary(static kvp => kvp.Key, static kvp => kvp.Value);
 
         return (multiVersionPackages, projectPackageMap);
     }
