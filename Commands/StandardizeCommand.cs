@@ -16,16 +16,16 @@ public sealed class StandardizeCommand : Command
         var solutionFileArgument = new Argument<string?>
         (
             "solutionFile",
-            () => null,
+            static () => null,
             "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection."
         );
 
-        var cleanOption = new Option<bool>(["--clean", "-c"], () => false, "Clean the solution after standardization.");
-        var restoreOption = new Option<bool>(["--restore", "-r"], () => false, "Restore the solution after standardization.");
-        var buildOption = new Option<bool>(["--build", "-b"], () => false, "Build the solution after standardization.");
-        var verboseOption = new Option<bool>(["--verbose", "-v"], () => false, "Show detailed output of dotnet commands.");
+        var cleanOption = new Option<bool>(["--clean", "-c"], static () => false, "Clean the solution after standardization.");
+        var restoreOption = new Option<bool>(["--restore", "-r"], static () => false, "Restore the solution after standardization.");
+        var buildOption = new Option<bool>(["--build", "-b"], static () => false, "Build the solution after standardization.");
+        var verboseOption = new Option<bool>(["--verbose", "-v"], static () => false, "Show detailed output of dotnet commands.");
 
-        AddArgument(solutionFileArgument);        
+        AddArgument(solutionFileArgument);
         AddOption(cleanOption);
         AddOption(restoreOption);
         AddOption(buildOption);
@@ -44,6 +44,8 @@ public sealed class StandardizeCommand : Command
                     Build = build
                 };
 
+                Environment.CurrentDirectory = Path.GetDirectoryName(options.SolutionFile)!;
+                
                 var selectedProjects = solutionExplorer.DiscoverAndSelectProjects
                 (
                     options.SolutionFile,

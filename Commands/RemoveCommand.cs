@@ -1,4 +1,5 @@
 using System.CommandLine;
+using NetTools.Helpers;
 using NetTools.Services;
 using Spectre.Console;
 
@@ -13,7 +14,7 @@ public sealed class RemoveCommand : Command
     (
         IAnsiConsole console,
         SolutionExplorer solutionExplorer,
-        NugetVersionStandardizer standardizer,
+        CsprojHelpers csprojHelpers,
         DotnetCommandRunner dotnetRunner
     ) : base("rm", "Remove a NuGet package from selected projects in a solution.")
     {
@@ -41,24 +42,24 @@ public sealed class RemoveCommand : Command
         this.SetHandler((packageId, solutionFile, clean, restore, build, verbose) =>
         {
             solutionFile = solutionExplorer.GetOrPromptSolutionFile(solutionFile);
+            var solutionDir = Path.GetDirectoryName(solutionFile ?? string.Empty)!;
+            Environment.CurrentDirectory = solutionDir;
 
             var projectsWithPackage = solutionExplorer.DiscoverAndSelectProjects
             (
                 solutionFile,
                 $"[green]Select the projects to remove package » {packageId}:[/]",
                 "[yellow]No .csproj files found in the solution file with the specified package.[/]",
-                csproj => standardizer.HasPackage(csproj, packageId)
+                csproj => csprojHelpers.HasPackage(csproj, packageId)
             );
 
             if (projectsWithPackage.Count == 0)
                 return;
 
-            var solutionDir = Path.GetDirectoryName(solutionFile ?? string.Empty)!;
-
             foreach (var relativePath in projectsWithPackage)
             {
                 var csprojPath = Path.Combine(solutionDir, relativePath);
-                standardizer.RemovePackageFromCsproj(csprojPath, packageId);
+                csprojHelpers.RemovePackageFromCsproj(csprojPath, packageId);
                 console.MarkupLine($"[green]Removed '{packageId}' from {relativePath}.[/]");
             }
 

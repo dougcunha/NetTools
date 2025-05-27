@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace NetTools.Services;
 
 /// <inheritdoc/>
-public class ProcessRunner : IProcessRunner
+public sealed class ProcessRunner : IProcessRunner
 {
     /// <inheritdoc/>
     public int Run
@@ -13,10 +13,12 @@ public class ProcessRunner : IProcessRunner
         DataReceivedEventHandler? errorDataReceived
     )
     {
-        using var process = new Process { StartInfo = startInfo };
-        
+        using var process = new Process();
+        process.StartInfo = startInfo;
+
         if (outputDataReceived != null)
             process.OutputDataReceived += outputDataReceived;
+
         if (errorDataReceived != null)
             process.ErrorDataReceived += errorDataReceived;
 
@@ -24,10 +26,12 @@ public class ProcessRunner : IProcessRunner
 
         if (outputDataReceived != null)
             process.BeginOutputReadLine();
+
         if (errorDataReceived != null)
             process.BeginErrorReadLine();
 
         process.WaitForExit();
+
         return process.ExitCode;
     }
 }

@@ -1,8 +1,6 @@
 using NetTools.Commands;
+using NetTools.Helpers;
 using Spectre.Console;
-using System.IO.Abstractions;
-using System.Xml;
-using System.Xml.Linq;
 
 namespace NetTools.Services;
 
@@ -11,24 +9,18 @@ namespace NetTools.Services;
 /// </summary>
 public sealed class NugetVersionStandardizer
 (
-    IFileSystem fileSystem,
     IAnsiConsole console,
-    IXDocumentLoader xDocumentLoader,
-    IXmlWriterWrapper xmlWriterWrapper,
-    DotnetCommandRunner dotnetRunner
+    DotnetCommandRunner dotnetRunner,
+    CsprojHelpers csprojHelpers
 )
 {
-    private static readonly XmlWriterSettings _xmlWriterSettings = new()
-    {
-        Indent = true,
-        OmitXmlDeclaration = true,
-        Encoding = new System.Text.UTF8Encoding(false)
-    };
-
     /// <summary>
     /// Standardizes the NuGet package versions in the given solution directory by updating .csproj files.
     /// </summary>
-    /// <param name="solutionFilePath">The path to the solution directory.</param>
+    /// <param name="options">
+    /// A <see cref="StandardizeCommandOptions"/> instance containing options for the command.
+    /// </param>
+    /// <param name="projectPaths">The paths to the solutions files.</param>
     public void StandardizeVersions(StandardizeCommandOptions options, params string[] projectPaths)
     {
         if (string.IsNullOrWhiteSpace(options.SolutionFile))
@@ -85,37 +77,6 @@ public sealed class NugetVersionStandardizer
     }
 
     /// <summary>
-    /// Parses a .csproj file and collects NuGet package ids and their versions.
-    /// </summary>
-    /// <param name="csprojPath">The path to the .csproj file.</param>
-    /// <returns>A dictionary with package id as key and version as value.</returns>
-    private Dictionary<string, string> GetPackagesFromCsproj(string csprojPath)
-    {
-        var packages = new Dictionary<string, string>();
-
-        if (!fileSystem.File.Exists(csprojPath))
-        {
-            return packages;
-        }
-
-        var doc = xDocumentLoader.Load(csprojPath);
-        var packageRefs = doc.Descendants().Where(e => e.Name.LocalName == "PackageReference");
-
-        foreach (var pr in packageRefs)
-        {
-            var id = pr.Attribute("Include")?.Value;
-            var version = pr.Attribute("Version")?.Value ?? pr.Element("Version")?.Value;
-
-            if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(version))
-            {
-                packages[id] = version;
-            }
-        }
-
-        return packages;
-    }
-
-    /// <summary>
     /// Discovers NuGet packages with multiple versions and returns the data for further processing.
     /// </summary>
     /// <param name="solutionDirectory">The solution directory.</param>
@@ -125,7 +86,7 @@ public sealed class NugetVersionStandardizer
     (
         string solutionDirectory,
         params string[] projectPaths
-)
+    )
     {
         var packageVersions = new Dictionary<string, HashSet<string>>();
         var projectPackageMap = new Dictionary<string, Dictionary<string, string>>();
@@ -133,7 +94,7 @@ public sealed class NugetVersionStandardizer
         foreach (var relativePath in projectPaths)
         {
             var csprojPath = Path.Combine(solutionDirectory, relativePath);
-            var pkgs = GetPackagesFromCsproj(csprojPath);
+            var pkgs = csprojHelpers.GetPackagesFromCsproj(csprojPath);
             projectPackageMap[csprojPath] = pkgs;
 
             foreach (var (id, version) in pkgs)
@@ -165,102 +126,24 @@ public sealed class NugetVersionStandardizer
     {
         console.Status()
             .Spinner(Spinner.Known.Dots)
-            .Start("Standardizing package versions...", ctx =>
+            .Start("Standardizing package versions...", _ =>
             {
                 foreach (var selectedDisplay in selected)
                 {
                     var packageId = selectedDisplay.Split(' ')[0];
 
-                    var maxVersion = multiVersionPackages[packageId].OrderByDescending(v => v, StringComparer.OrdinalIgnoreCase)
-                        .Where(static v => !v.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
-                        .First();
+                    var maxVersion = multiVersionPackages[packageId].OrderByDescending(static v => v, StringComparer.OrdinalIgnoreCase)
+                        .First(static v => !v.Equals("Unknown", StringComparison.OrdinalIgnoreCase));
 
                     foreach (var (csprojPath, pkgs) in projectPackageMap)
                     {
                         if (!pkgs.TryGetValue(packageId, out var currentVersion) || currentVersion == maxVersion)
                             continue;
 
-                        UpdatePackageVersionInCsproj(csprojPath, packageId, maxVersion);
+                        csprojHelpers.UpdatePackageVersionInCsproj(csprojPath, packageId, maxVersion);
                         console.MarkupLine($"[green]Updated » {packageId} in {Path.GetFileName(csprojPath)} to version {maxVersion}.[/]");
                     }
                 }
             });
-    }
-
-    /// <summary>
-    /// Updates the version of a NuGet package in a .csproj file.
-    /// </summary>
-    /// <param name="csprojPath">The path to the .csproj file.</param>
-    /// <param name="packageId">The package id.</param>
-    /// <param name="newVersion">The new version to set.</param>
-    private void UpdatePackageVersionInCsproj(string csprojPath, string packageId, string newVersion)
-    {
-        var doc = xDocumentLoader.Load(csprojPath, LoadOptions.PreserveWhitespace);
-        var packageRefs = doc.Descendants().Where(e => e.Name.LocalName == "PackageReference");
-        var updated = false;
-
-        foreach (var pr in packageRefs)
-        {
-            var id = pr.Attribute("Include")?.Value;
-
-            if (id == packageId)
-            {
-                if (pr.Attribute("Version") != null)
-                {
-                    pr.Attribute("Version")!.Value = newVersion;
-                    updated = true;
-
-                    continue;
-                }
-
-                if (pr.Element("Version") != null)
-                {
-                    pr.Element("Version")!.Value = newVersion;
-                    updated = true;
-                }
-            }
-        }
-
-        if (updated)
-            xmlWriterWrapper.WriteTo(csprojPath, doc.ToString(), _xmlWriterSettings);
-    }
-
-    /// <summary>
-    /// Checks if a .csproj contains a given NuGet package (any version).
-    /// </summary>
-    /// <param name="csprojPath">The path to the .csproj file.</param>
-    /// <param name="packageId">The NuGet package id.</param>
-    /// <returns>True if the package exists, false otherwise.</returns>
-    public bool HasPackage(string csprojPath, string packageId)
-    {
-        var doc = xDocumentLoader.Load(csprojPath, LoadOptions.PreserveWhitespace);
-
-        return doc.Descendants()
-            .Where(e => e.Name.LocalName == "PackageReference")
-            .Any(pr => string.Equals(pr.Attribute("Include")?.Value, packageId, StringComparison.OrdinalIgnoreCase));
-    }
-
-    /// <summary>
-    /// Removes a NuGet package from a .csproj file.
-    /// </summary>
-    /// <param name="csprojPath">The path to the .csproj file.</param>
-    /// <param name="packageId">The NuGet package id.</param>
-    public void RemovePackageFromCsproj(string csprojPath, string packageId)
-    {
-        var doc = xDocumentLoader.Load(csprojPath, LoadOptions.PreserveWhitespace);
-        var packageRefs = doc.Descendants().Where(e => e.Name.LocalName == "PackageReference").ToList();
-        var removed = false;
-
-        foreach (var pr in packageRefs)
-        {
-            if (string.Equals(pr.Attribute("Include")?.Value, packageId, StringComparison.OrdinalIgnoreCase))
-            {
-                pr.Remove();
-                removed = true;
-            }
-        }
-
-        if (removed)
-            xmlWriterWrapper.WriteTo(csprojPath, doc.ToString(), _xmlWriterSettings);
     }
 }

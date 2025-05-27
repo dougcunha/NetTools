@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    },
+    "Upd": {
+      "commandName": "Project",
+      "commandLineArgs": "upd",
+      "workingDirectory": "d:\\projetos\\dconnect"
+    }
+  }
+}

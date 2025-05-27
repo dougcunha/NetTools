@@ -1,4 +1,5 @@
 using System.IO.Abstractions;
+using NetTools.Helpers;
 using Spectre.Console;
 
 namespace NetTools.Services;
@@ -6,7 +7,7 @@ namespace NetTools.Services;
 /// <summary>
 /// Service responsible for exploring .sln files and listing associated .csproj files.
 /// </summary>
-public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSystem) 
+public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSystem)
 {
     /// <summary>
     /// Discovers .csproj files from a given .sln file and allows the user to select projects.
@@ -14,6 +15,9 @@ public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSyste
     /// </summary>
     /// <param name="solutionFile">The path to the .sln file (optional).</param>
     /// <param name="markupTitle">Prompt title for project selection.</param>
+    /// <param name="notFoundMessage">
+    /// A message to display if no .csproj files are found.
+    /// </param>
     /// <param name="predicate">Optional filter for csproj files.</param>
     /// <returns>A list of selected .csproj file paths.</returns>
     public List<string> DiscoverAndSelectProjects(string? solutionFile, string markupTitle, string notFoundMessage, Func<string, bool>? predicate = null)
@@ -36,7 +40,7 @@ public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSyste
             return [];
         }
 
-        var selectedProjects = console.Prompt
+        return console.Prompt
         (
             new MultiSelectionPrompt<string>()
                 .Title(markupTitle)
@@ -46,8 +50,6 @@ public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSyste
                 .InstructionsText("[grey](Press [blue]<space>[/] to select, [green]<enter>[/] to confirm)[/]")
                 .AddChoiceGroup("Select all", projectPaths.OrderBy(p => p))
         ).ToList();
-
-        return selectedProjects;
     }
 
     /// <summary>
@@ -80,15 +82,15 @@ public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSyste
         }
 
         var slnNames = slnFiles
-            .Select(Path.GetFileName)!
-            .Where(n => !string.IsNullOrWhiteSpace(n))
-            .Select(n => n!).ToList();
+            .Select(Path.GetFileName)
+            .Where(static n => !string.IsNullOrWhiteSpace(n))
+            .Select(static n => n!).ToList();
 
         var chosen = console.Prompt(
             new SelectionPrompt<string>()
                 .Title("[yellow]Select the solution file:[/]")
                 .PageSize(10)
-                .AddChoices(slnNames!)
+                .AddChoices(slnNames)
         );
 
         return string.IsNullOrWhiteSpace(chosen)
@@ -101,55 +103,29 @@ public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSyste
         var projectPaths = new List<string>();
         var lines = fileSystem.File.ReadLines(solutionFile).ToList();
 
-        var progress = console.Progress()
-            .AutoClear(true)
-            .Columns
-            (
-                new ProgressBarColumn
-                {
-                    CompletedStyle = new Style(foreground: Color.Green1, decoration: Decoration.Conceal | Decoration.Bold | Decoration.Invert),
-                    RemainingStyle = new Style(decoration: Decoration.Conceal),
-                    FinishedStyle = new Style(foreground: Color.Green1, decoration: Decoration.Conceal | Decoration.Bold | Decoration.Invert)
-                },
-                new PercentageColumn(),
-                new SpinnerColumn(),
-                new ElapsedTimeColumn(),
-                new TaskDescriptionColumn()
-            );
+        using var spinner = AsyncSpinner.Show(console, "Reading solution file...");
 
-        progress.Start(ctx =>
+        foreach (var line in lines.Where(IsProjectLine))
         {
-            var task = ctx.AddTask("Discovering .csproj files", maxValue: lines.Count);
-            task.StartTask();
+            var parts = line.Split('"');
 
-            foreach (var line in lines)
+            if (parts.Length <= 5)
+                continue;
+
+            var relativePath = parts[5];
+            var absolutePath = Path.Combine(Path.GetDirectoryName(solutionFile)!, relativePath);
+
+            if (predicate?.Invoke(absolutePath) is false)
             {
-                if (!line.Trim().StartsWith("Project(") || !line.Contains(".csproj"))
-                {
-                    task.Increment(1);
-                    continue;
-                }
-
-                var parts = line.Split('"');
-                
-                if (parts.Length > 5)
-                {
-                    var relativePath = parts[5];
-                    var absolutePath = Path.Combine(Path.GetDirectoryName(solutionFile)!, relativePath);
-
-                    if (predicate != null && !predicate(absolutePath))
-                    {
-                        task.Increment(1);
-
-                        continue;
-                    }
-
-                    projectPaths.Add(relativePath);
-                }
-                task.Increment(1);
+                continue;
             }
-        });
+
+            projectPaths.Add(relativePath);
+        }
 
         return projectPaths;
     }
+
+    private static bool IsProjectLine(string line)
+        => line.Trim().StartsWith("Project(", StringComparison.OrdinalIgnoreCase) && line.Contains(".csproj");
 }
