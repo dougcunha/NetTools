@@ -11,7 +11,16 @@ public sealed class StandardizeCommand : Command
     /// <summary>
     /// Initializes a new instance of the <see cref="StandardizeCommand"/> class.
     /// </summary>
-    public StandardizeCommand(NugetVersionStandardizer standardizer, SolutionExplorer solutionExplorer) : base("st", "Standardize NuGet package versions in a solution.")
+    public StandardizeCommand
+    (
+        NugetVersionStandardizer standardizer,
+        ISolutionExplorer solutionExplorer,
+        IEnvironmentService environment
+    ) : base
+    (
+        "st",
+        "Standardize NuGet package versions in a solution."
+    )
     {
         var solutionFileArgument = new Argument<string?>
         (
@@ -44,8 +53,8 @@ public sealed class StandardizeCommand : Command
                     Build = build
                 };
 
-                Environment.CurrentDirectory = Path.GetDirectoryName(options.SolutionFile)!;
-                
+                environment.CurrentDirectory = Path.GetDirectoryName(options.SolutionFile)!;
+
                 var selectedProjects = solutionExplorer.DiscoverAndSelectProjects
                 (
                     options.SolutionFile,

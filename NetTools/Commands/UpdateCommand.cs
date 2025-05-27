@@ -9,21 +9,25 @@ namespace NetTools.Commands;
 /// Command to check for NuGet package updates in selected projects.
 /// </summary>
 public sealed class UpdateCommand : Command
-{    private readonly SolutionExplorer _solutionExplorer;
+{
+    private readonly ISolutionExplorer _solutionExplorer;
     private readonly INugetService _nugetService;
     private readonly IAnsiConsole _console;
     private readonly ICsprojHelpers _csprojHelpers;
     private readonly IDotnetCommandRunner _dotnetRunner;
+    private readonly IEnvironmentService _environment;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateCommand"/> class.
     /// </summary>
     public UpdateCommand
     (
-        SolutionExplorer solutionExplorer,        INugetService nugetService,
+        ISolutionExplorer solutionExplorer,
+        INugetService nugetService,
         IAnsiConsole console,
         ICsprojHelpers csprojHelpers,
-        IDotnetCommandRunner dotnetRunner
+        IDotnetCommandRunner dotnetRunner,
+        IEnvironmentService environment
     ) : base("upd", "Check for NuGet package updates in selected projects.")
     {
         _solutionExplorer = solutionExplorer;
@@ -31,6 +35,7 @@ public sealed class UpdateCommand : Command
         _console = console;
         _csprojHelpers = csprojHelpers;
         _dotnetRunner = dotnetRunner;
+        _environment = environment;
 
         var includePrereleaseArgument = new Option<bool>
         (
@@ -105,7 +110,7 @@ public sealed class UpdateCommand : Command
     )
     {
         solutionFile = _solutionExplorer.GetOrPromptSolutionFile(solutionFile);
-        Environment.CurrentDirectory = Path.GetDirectoryName(solutionFile)!;
+        _environment.CurrentDirectory = Path.GetDirectoryName(solutionFile)!;
 
         var projects = _solutionExplorer.DiscoverAndSelectProjects
         (
@@ -116,12 +121,11 @@ public sealed class UpdateCommand : Command
 
         if (projects.Count == 0)
             return false;
-        
-        var projectPackages = _csprojHelpers.GetPackagesFromProjects(projects);
-        var consolidatedPackages = CsprojHelpers.RetrieveUniquePackageVersions(projectPackages);
-        var latestVersions = await FetchLatestPackageVersionsAsync(consolidatedPackages, includePrerelease).ConfigureAwait(false);
 
-        var outdated = CsprojHelpers.GetOutdatedPackages(consolidatedPackages, latestVersions);
+        var projectPackages = _csprojHelpers.GetPackagesFromProjects(projects);
+        var consolidatedPackages = _csprojHelpers.RetrieveUniquePackageVersions(projectPackages);
+        var latestVersions = await FetchLatestPackageVersionsAsync(consolidatedPackages, includePrerelease).ConfigureAwait(false);
+        var outdated = _csprojHelpers.GetOutdatedPackages(consolidatedPackages, latestVersions);
 
         if (outdated.Count == 0)
         {

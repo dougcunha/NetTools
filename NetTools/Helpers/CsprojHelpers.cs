@@ -16,11 +16,7 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
         Encoding = new System.Text.UTF8Encoding(false)
     };
 
-    /// <summary>
-    /// Parses a .csproj file and collects NuGet package ids and their versions.
-    /// </summary>
-    /// <param name="csprojPath">The path to the .csproj file.</param>
-    /// <returns>A dictionary with package id as key and version as value.</returns>
+    /// <inheritdoc/>
     public Dictionary<string, string> GetPackagesFromCsproj(string csprojPath)
     {
         var packages = new Dictionary<string, string>();
@@ -42,16 +38,8 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
         return packages;
     }
 
-    /// <summary>
-    /// Gets all packages from the selected projects and maps them to their versions.
-    /// </summary>
-    /// <param name="projectsPackages">
-    /// The list of project paths to scan for packages.
-    /// </param>
-    /// <returns>
-    /// A dictionary containing all unique package IDs and their versions across the projects.
-    /// </returns>
-    public static Dictionary<string, string> RetrieveUniquePackageVersions(Dictionary<string, List<Package>> projectsPackages)
+    /// <inheritdoc/>
+    public Dictionary<string, string> RetrieveUniquePackageVersions(Dictionary<string, List<Package>> projectsPackages)
     {
         Dictionary<string, string> allPackages = [];
 
@@ -69,16 +57,7 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
         return allPackages;
     }
 
-    /// <summary>
-    /// Gets packages from multiple projects and returns them as a dictionary.
-    /// Each key is a project path and the value is a list of Package objects containing the ID and version.
-    /// </summary>
-    /// <param name="projects">
-    /// A list of project paths to scan for packages.
-    /// </param>
-    /// <returns>
-    /// A dictionary where each key is a project path and the value is a list of Package objects.
-    /// </returns>
+    /// <inheritdoc/>
     public Dictionary<string, List<Package>> GetPackagesFromProjects(params List<string> projects)
     {
         var packages = new Dictionary<string, List<Package>>();
@@ -99,22 +78,8 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
         return packages;
     }
 
-    /// <summary>
-    /// Gets a list of outdated packages by comparing installed versions with the latest available versions.
-    /// </summary>
-    /// <param name="allPackages">
-    /// The dictionary containing all packages with their installed versions.
-    /// </param>
-    /// <param name="latestVersions">
-    /// The dictionary containing the latest available versions of the packages.
-    /// </param>
-    /// <param name="includePrerelease">
-    /// Determines whether to include prerelease versions in the search for updates.
-    /// </param>
-    /// <returns>
-    /// A list of tuples where each tuple contains the package ID, installed version, and latest version.
-    /// </returns>
-    public static List<(string PackageId, string Installed, string? Latest)> GetOutdatedPackages
+    /// <inheritdoc/>
+    public List<(string PackageId, string Installed, string? Latest)> GetOutdatedPackages
     (
         Dictionary<string, string> allPackages,
         Dictionary<string, string?> latestVersions,
@@ -143,18 +108,7 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
         return outdated;
     }
 
-    /// <summary>
-    /// Updates the selected packages in their respective projects.
-    /// </summary>
-    /// <param name="projectPackages">
-    /// The dictionary containing project paths and their packages with versions.
-    /// </param>
-    /// <param name="latestVersions">
-    /// The dictionary containing the latest available versions of the packages.
-    /// </param>
-    /// <param name="selected">
-    /// The list of selected packages to update, containing tuples of package name and ID.
-    /// </param>
+    /// <inheritdoc/>
     public void UpdatePackagesInProjects
     (
         Dictionary<string, List<Package>> projectPackages,
@@ -185,11 +139,7 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
         }
     }
 
-    /// <summary>
-    /// Removes a NuGet package from a .csproj file.
-    /// </summary>
-    /// <param name="csprojPath">The path to the .csproj file.</param>
-    /// <param name="packageId">The NuGet package id.</param>
+    /// <inheritdoc/>
     public void RemovePackageFromCsproj(string csprojPath, string packageId)
     {
         var doc = xmlService.Load(csprojPath, LoadOptions.PreserveWhitespace);
@@ -210,13 +160,7 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
             xmlService.WriteTo(csprojPath, doc.ToString(), _xmlWriterSettings);
     }
 
-
-    /// <summary>
-    /// Checks if a .csproj contains a given NuGet package (any version).
-    /// </summary>
-    /// <param name="csprojPath">The path to the .csproj file.</param>
-    /// <param name="packageId">The NuGet package id.</param>
-    /// <returns>True if the package exists, false otherwise.</returns>
+    /// <inheritdoc/>
     public bool HasPackage(string csprojPath, string packageId)
     {
         var doc = xmlService.Load(csprojPath, LoadOptions.PreserveWhitespace);
@@ -226,13 +170,7 @@ public sealed class CsprojHelpers(IFileSystem fileSystem, IXmlService xmlService
             .Any(pr => string.Equals(pr.Attribute("Include")?.Value, packageId, StringComparison.OrdinalIgnoreCase));
     }
 
-
-    /// <summary>
-    /// Updates the version of a NuGet package in a .csproj file.
-    /// </summary>
-    /// <param name="csprojPath">The path to the .csproj file.</param>
-    /// <param name="packageId">The package id.</param>
-    /// <param name="newVersion">The new version to set.</param>
+    /// <inheritdoc/>
     public void UpdatePackageVersionInCsproj(string csprojPath, string packageId, string newVersion)
     {
         var doc = xmlService.Load(csprojPath, LoadOptions.PreserveWhitespace);

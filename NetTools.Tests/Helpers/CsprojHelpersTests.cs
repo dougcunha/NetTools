@@ -74,7 +74,7 @@ public sealed class CsprojHelpersTests
         };
 
         // Act
-        var result = CsprojHelpers.RetrieveUniquePackageVersions(projectsPackages);
+        var result = _helpers.RetrieveUniquePackageVersions(projectsPackages);
 
         // Assert
         result.Count.ShouldBe(3);
@@ -100,7 +100,7 @@ public sealed class CsprojHelpersTests
         };
 
         // Act
-        var result = CsprojHelpers.GetOutdatedPackages(allPackages, latestVersions, includePrerelease: false);
+        var result = _helpers.GetOutdatedPackages(allPackages, latestVersions, includePrerelease: false);
 
         // Assert
         result.Count.ShouldBe(1);
@@ -126,7 +126,7 @@ public sealed class CsprojHelpersTests
         };
 
         // Act
-        var result = CsprojHelpers.GetOutdatedPackages(allPackages, latestVersions, includePrerelease: true);
+        var result = _helpers.GetOutdatedPackages(allPackages, latestVersions, includePrerelease: true);
 
         // Assert
         result.Count.ShouldBe(2);
@@ -159,7 +159,7 @@ public sealed class CsprojHelpersTests
         // Assert
         _xmlService.Received(1)
             .WriteTo(PATH,
-                Arg.Is<string>(s => s.Contains("Other") && !s.Contains("PkgRem")),
+                Arg.Is<string>(static s => s.Contains("Other") && !s.Contains("PkgRem")),
                 Arg.Any<XmlWriterSettings>());
     }
 

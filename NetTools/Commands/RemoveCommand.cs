@@ -12,9 +12,10 @@ public sealed class RemoveCommand : Command
 {    public RemoveCommand
     (
         IAnsiConsole console,
-        SolutionExplorer solutionExplorer,
+        ISolutionExplorer solutionExplorer,
         ICsprojHelpers csprojHelpers,
-        IDotnetCommandRunner dotnetRunner
+        IDotnetCommandRunner dotnetRunner,
+        IEnvironmentService environment
     ) : base("rm", "Remove a NuGet package from selected projects in a solution.")
     {
         var packageIdArgument = new Argument<string>("packageId", "The NuGet package id to remove.");
@@ -22,14 +23,14 @@ public sealed class RemoveCommand : Command
         var solutionFileArgument = new Argument<string?>
         (
             "solutionFile",
-            () => null,
+            static () => null,
             "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection."
         );
 
-        var cleanOption = new Option<bool>(["--clean", "-c"], () => false, "Clean the solution after removal.");
-        var restoreOption = new Option<bool>(["--restore", "-r"], () => false, "Restore the solution after removal.");
-        var buildOption = new Option<bool>(["--build", "-b"], () => false, "Build the solution after removal.");
-        var verboseOption = new Option<bool>(["--verbose", "-v"], () => false, "Show detailed output of dotnet commands.");
+        var cleanOption = new Option<bool>(["--clean", "-c"], static () => false, "Clean the solution after removal.");
+        var restoreOption = new Option<bool>(["--restore", "-r"], static () => false, "Restore the solution after removal.");
+        var buildOption = new Option<bool>(["--build", "-b"], static () => false, "Build the solution after removal.");
+        var verboseOption = new Option<bool>(["--verbose", "-v"], static () => false, "Show detailed output of dotnet commands.");
 
         AddArgument(packageIdArgument);
         AddArgument(solutionFileArgument);
@@ -42,7 +43,7 @@ public sealed class RemoveCommand : Command
         {
             solutionFile = solutionExplorer.GetOrPromptSolutionFile(solutionFile);
             var solutionDir = Path.GetDirectoryName(solutionFile ?? string.Empty)!;
-            Environment.CurrentDirectory = solutionDir;
+            environment.CurrentDirectory = solutionDir;
 
             var projectsWithPackage = solutionExplorer.DiscoverAndSelectProjects
             (

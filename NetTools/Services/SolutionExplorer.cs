@@ -7,7 +7,7 @@ namespace NetTools.Services;
 /// <summary>
 /// Service responsible for exploring .sln files and listing associated .csproj files.
 /// </summary>
-public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSystem)
+public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSystem) : ISolutionExplorer
 {
     /// <summary>
     /// Discovers .csproj files from a given .sln file and allows the user to select projects.
