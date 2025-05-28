@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags: [ '*' ]
-  workflow_dispatch:  # Permite trigger manual quando necessário
+  workflow_dispatch:  
 
 permissions:
   contents: write
