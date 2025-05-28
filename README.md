@@ -2,6 +2,7 @@
 
 [![CI Tests](https://github.com/dougcunha/NetTools/actions/workflows/ci.yml/badge.svg)](https://github.com/dougcunha/NetTools/actions/workflows/ci.yml)
 [![Build](https://github.com/dougcunha/NetTools/actions/workflows/build.yml/badge.svg)](https://github.com/dougcunha/NetTools/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/dougcunha/NetTools/graph/badge.svg?token=JLBS8QRK7K)](https://codecov.io/gh/dougcunha/NetTools)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Index

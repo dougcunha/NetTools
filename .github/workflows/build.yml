@@ -1,11 +1,9 @@
-name: Build, Test and Version
+name: Build and Release
 
 on:
   push:
-    branches: [ master ]
     tags: [ '*' ]
-  pull_request:
-    branches: [ master ]
+  workflow_dispatch:  # Permite trigger manual quando necessário
 
 permissions:
   contents: write
@@ -47,7 +45,6 @@ jobs:
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
-      continue-on-error: true
 
     - name: Copy LICENSE to output
       if: success()
