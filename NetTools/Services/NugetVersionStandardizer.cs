@@ -12,7 +12,7 @@ public sealed class NugetVersionStandardizer
     IAnsiConsole console,
     IDotnetCommandRunner dotnetRunner,
     ICsprojHelpers csprojHelpers
-)
+) : INugetVersionStandardizer
 {    /// <summary>
     /// Standardizes the NuGet package versions in the given solution directory by updating .csproj files.
     /// </summary>

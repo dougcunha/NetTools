@@ -29,7 +29,7 @@ public static class Startup
         services.AddSingleton<UpdateCommand>();
         services.AddSingleton<ICsprojHelpers, CsprojHelpers>();
         services.AddSingleton<IFileSystem, FileSystem>();
-        services.AddSingleton<NugetVersionStandardizer>();
+        services.AddSingleton<INugetVersionStandardizer, NugetVersionStandardizer>();
         services.AddSingleton<IXmlService, XmlService>();
         services.AddSingleton<IProcessRunner, ProcessRunner>();
         services.AddSingleton<IDotnetCommandRunner, DotnetCommandRunner>();

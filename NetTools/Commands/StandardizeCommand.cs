@@ -13,7 +13,7 @@ public sealed class StandardizeCommand : Command
     /// </summary>
     public StandardizeCommand
     (
-        NugetVersionStandardizer standardizer,
+        INugetVersionStandardizer standardizer,
         ISolutionExplorer solutionExplorer,
         IEnvironmentService environment
     ) : base
