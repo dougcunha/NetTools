@@ -16,7 +16,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.github\pull_request_template.md = .github\pull_request_template.md
 		.github\instructions\code style.instructions.md = .github\instructions\code style.instructions.md
 		.github\instructions\test style.instructions.md = .github\instructions\test style.instructions.md
-		CHANGELOG.md = CHANGELOG.md
 		CONTRIBUTING.md = CONTRIBUTING.md
 		LICENSE = LICENSE
 		README.md = README.md
