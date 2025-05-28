@@ -1,6 +1,8 @@
 # NetTools
 
-![Build Status](https://github.com/dougcunha/NetTools/actions/workflows/build.yml/badge.svg?branch=master) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI Tests](https://github.com/dougcunha/NetTools/actions/workflows/ci.yml/badge.svg)](https://github.com/dougcunha/NetTools/actions/workflows/ci.yml)
+[![Build](https://github.com/dougcunha/NetTools/actions/workflows/build.yml/badge.svg)](https://github.com/dougcunha/NetTools/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Index
 
@@ -31,6 +33,16 @@ NetTools is a modern, open-source .NET CLI utility for discovering, standardizin
 - Supports verbose output for troubleshooting.
 - Adheres to C# code style and documentation standards.
 
+## Quality Assurance
+
+NetTools maintains high code quality standards:
+
+- **97.6% Code Coverage**: Comprehensive test suite with 155+ unit tests
+- **Automated CI/CD**: GitHub Actions for continuous integration and delivery
+- **Dependency Management**: Automated dependency updates via Dependabot
+- **Code Quality**: Static analysis and linting in the CI pipeline
+- **Automated Releases**: Semantic versioning and NuGet package publishing
+
 ## Getting Started
 
 ### Prerequisites
@@ -50,6 +62,36 @@ dotnet build
 
 # Run the tool (example)
 dotnet run -- st
+```
+
+### Development
+
+#### Running Tests
+
+```sh
+# Run all tests
+dotnet test
+
+# Run tests with coverage
+dotnet test --collect:"XPlat Code Coverage"
+
+# Run specific test project
+dotnet test NetTools.Tests/NetTools.Tests.csproj
+```
+
+#### Code Coverage
+
+The project maintains high code coverage. To generate a coverage report:
+
+```sh
+# Install coverage tools
+dotnet tool install --global dotnet-reportgenerator-globaltool
+
+# Run tests with coverage
+dotnet test --collect:"XPlat Code Coverage"
+
+# Generate HTML report
+reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coverage" -reporttypes:Html
 ```
 
 ### Usage
