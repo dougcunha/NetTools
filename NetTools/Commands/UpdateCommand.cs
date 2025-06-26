@@ -37,42 +37,55 @@ public sealed class UpdateCommand : Command
         _dotnetRunner = dotnetRunner;
         _environment = environment;
 
-        var includePrereleaseArgument = new Option<bool>
-        (
-            ["--include-prerelease", "-p"],
-            static () => false,
-            "If true, includes prerelease versions when checking for updates."
-        );
+        var includePrereleaseArgument = new Option<bool>("--include-prerelease", "-p")
+        {
+            Description = "If true, includes prerelease versions when checking for updates."
+        };
 
-        var cleanOption = new Option<bool>(["--clean", "-c"], static () => false, "Clean the solution after update.");
-        var restoreOption = new Option<bool>(["--restore", "-r"], static () => false, "Restore the solution after update.");
-        var buildOption = new Option<bool>(["--build", "-b"], static () => false, "Build the solution after update.");
-        var verboseOption = new Option<bool>(["--verbose", "-v"], static () => false, "Show detailed output of dotnet commands.");
+        var cleanOption = new Option<bool>("--clean", "-c")
+        {
+            Description = "Clean the solution after update."
+        };
 
-        var solutionFileArgument = new Argument<string?>
-        (
-            "solutionFile",
-            static () => null,
-            "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection."
-        );
+        var restoreOption = new Option<bool>("--restore", "-r")
+        {
+            Description = "Restore the solution after update."
+        };
 
-        AddArgument(solutionFileArgument);
-        AddOption(includePrereleaseArgument);
-        AddOption(cleanOption);
-        AddOption(restoreOption);
-        AddOption(buildOption);
-        AddOption(verboseOption);
+        var buildOption = new Option<bool>("--build", "-b")
+        {
+            Description = "Build the solution after update."
+        };
 
-        this.SetHandler
-        (
-            HandleAsync,
-            solutionFileArgument,
-            includePrereleaseArgument,
-            cleanOption,
-            restoreOption,
-            buildOption,
-            verboseOption
-        );
+        var verboseOption = new Option<bool>("--verbose", "-v")
+        {
+            Description = "Show detailed output of dotnet commands."
+        };
+
+        var solutionFileArgument = new Argument<string?>("solutionFile")
+        {
+            Description = "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection.",
+            Arity = ArgumentArity.ZeroOrOne
+        };
+
+        Add(solutionFileArgument);
+        Add(includePrereleaseArgument);
+        Add(cleanOption);
+        Add(restoreOption);
+        Add(buildOption);
+        Add(verboseOption);
+
+        SetAction(async (result) =>
+        {
+            var solutionFile = result.GetValue(solutionFileArgument);
+            var includePrerelease = result.GetValue(includePrereleaseArgument);
+            var clean = result.GetValue(cleanOption);
+            var restore = result.GetValue(restoreOption);
+            var build = result.GetValue(buildOption);
+            var verbose = result.GetValue(verboseOption);
+
+            await HandleAsync(solutionFile, includePrerelease, clean, restore, build, verbose).ConfigureAwait(false);
+        });
     }
 
     /// <summary>
@@ -155,7 +168,7 @@ public sealed class UpdateCommand : Command
 
         _csprojHelpers.UpdatePackagesInProjects(projectPackages, latestVersions, selected);
 
-        if (_dotnetRunner.RunSequentialCommands
+        if  (_dotnetRunner.RunSequentialCommands
             (
                 Path.GetDirectoryName(solutionFile)!,
                 Path.GetFileName(solutionFile),
@@ -163,9 +176,10 @@ public sealed class UpdateCommand : Command
                 clean,
                 restore,
                 build
-            )
-        )
+            ))
+        {
             _console.MarkupLine("[green]Selected packages updated successfully.[/]");
+        }
 
         return true;
     }

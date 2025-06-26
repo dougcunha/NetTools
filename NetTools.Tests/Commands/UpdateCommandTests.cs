@@ -38,7 +38,7 @@ public sealed class UpdateCommandTests
             _environment
         );
 
-        _rootCommand.AddCommand(_command);
+        _rootCommand.Subcommands.Add(_command);
     }
 
     [Fact]
@@ -64,11 +64,11 @@ public sealed class UpdateCommandTests
         _command.Options.Count.ShouldBe(5);
 
         var optionNames = _command.Options.Select(static o => o.Name).ToList();
-        optionNames.ShouldContain("include-prerelease");
-        optionNames.ShouldContain("clean");
-        optionNames.ShouldContain("restore");
-        optionNames.ShouldContain("build");
-        optionNames.ShouldContain("verbose");
+        optionNames.ShouldContain("--include-prerelease");
+        optionNames.ShouldContain("--clean");
+        optionNames.ShouldContain("--restore");
+        optionNames.ShouldContain("--build");
+        optionNames.ShouldContain("--verbose");
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public sealed class UpdateCommandTests
             .Returns([]);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["upd", SOLUTION_FILE]);
+        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -120,7 +120,7 @@ public sealed class UpdateCommandTests
         SetupBasicMocks(projects, projectPackages, consolidatedPackages, latestVersions);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["upd", SOLUTION_FILE]);
+        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -163,7 +163,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushKey(ConsoleKey.Enter);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["upd", SOLUTION_FILE]);
+        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -211,7 +211,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushKey(ConsoleKey.Enter);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["upd", SOLUTION_FILE]);
+        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -256,7 +256,7 @@ public sealed class UpdateCommandTests
             .Returns("2.0.0-beta");
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["upd", SOLUTION_FILE, "--include-prerelease"]);
+        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--include-prerelease"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -303,7 +303,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["upd", SOLUTION_FILE, "--clean"]);
+        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--clean"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -350,7 +350,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["upd", SOLUTION_FILE, "--restore"]);
+        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--restore"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -397,7 +397,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["upd", SOLUTION_FILE, "--build"]);
+        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--build"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -444,7 +444,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["upd", SOLUTION_FILE, "--verbose"]);
+        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--verbose"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -496,7 +496,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushKey(ConsoleKey.Enter);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["upd", SOLUTION_FILE, "--include-prerelease", "--clean", "--restore", "--build", "--verbose"]);
+        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--include-prerelease", "--clean", "--restore", "--build", "--verbose"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);

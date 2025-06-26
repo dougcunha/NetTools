@@ -22,28 +22,48 @@ public sealed class StandardizeCommand : Command
         "Standardize NuGet package versions in a solution."
     )
     {
-        var solutionFileArgument = new Argument<string?>
+        var solutionFileArgument = new Argument<string?>("solutionFile")
+        {
+            Description = "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection.",
+            Arity = ArgumentArity.ZeroOrOne
+        };
+
+        var cleanOption = new Option<bool>("--clean", "-c")
+        {
+            Description = "Clean the solution after standardization."
+        };
+
+        var restoreOption = new Option<bool>("--restore", "-r")
+        {
+            Description = "Restore the solution after standardization."
+        };
+
+        var buildOption = new Option<bool>("--build", "-b")
+        {
+            Description = "Build the solution after standardization."
+        };
+
+        var verboseOption = new Option<bool>("--verbose", "-v")
+        {
+            Description = "Show detailed output of dotnet commands."
+        };
+
+        Add(solutionFileArgument);
+        Add(cleanOption);
+        Add(restoreOption);
+        Add(buildOption);
+        Add(verboseOption);
+
+        SetAction
         (
-            "solutionFile",
-            static () => null,
-            "The path to the .sln file to discover projects (optional). If omitted, the tool will search for a solution file in the current directory or prompt for selection."
-        );
-
-        var cleanOption = new Option<bool>(["--clean", "-c"], static () => false, "Clean the solution after standardization.");
-        var restoreOption = new Option<bool>(["--restore", "-r"], static () => false, "Restore the solution after standardization.");
-        var buildOption = new Option<bool>(["--build", "-b"], static () => false, "Build the solution after standardization.");
-        var verboseOption = new Option<bool>(["--verbose", "-v"], static () => false, "Show detailed output of dotnet commands.");
-
-        AddArgument(solutionFileArgument);
-        AddOption(cleanOption);
-        AddOption(restoreOption);
-        AddOption(buildOption);
-        AddOption(verboseOption);
-
-        this.SetHandler
-        (
-            (solutionFile, verbose, clean, restore, build) =>
+            result =>
             {
+                var solutionFile = result.GetValue(solutionFileArgument);
+                var verbose = result.GetValue(verboseOption);
+                var clean = result.GetValue(cleanOption);
+                var restore = result.GetValue(restoreOption);
+                var build = result.GetValue(buildOption);
+
                 var options = new StandardizeCommandOptions
                 {
                     SolutionFile = solutionExplorer.GetOrPromptSolutionFile(solutionFile),
@@ -66,12 +86,6 @@ public sealed class StandardizeCommand : Command
                     return;
 
                 standardizer.StandardizeVersions(options, [.. selectedProjects]);
-            },
-            solutionFileArgument,
-            verboseOption,
-            cleanOption,
-            restoreOption,
-            buildOption
-        );
+            });
     }
 }

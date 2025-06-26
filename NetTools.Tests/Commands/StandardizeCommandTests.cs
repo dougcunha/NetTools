@@ -32,7 +32,7 @@ public sealed class StandardizeCommandTests
             _environment
         );
 
-        _rootCommand.AddCommand(_command);
+        _rootCommand.Subcommands.Add(_command);
     }
 
     [Fact]
@@ -58,10 +58,10 @@ public sealed class StandardizeCommandTests
         _command.Options.Count.ShouldBe(4);
 
         var optionNames = _command.Options.Select(static o => o.Name).ToList();
-        optionNames.ShouldContain("clean");
-        optionNames.ShouldContain("restore");
-        optionNames.ShouldContain("build");
-        optionNames.ShouldContain("verbose");
+        optionNames.ShouldContain("--clean");
+        optionNames.ShouldContain("--restore");
+        optionNames.ShouldContain("--build");
+        optionNames.ShouldContain("--verbose");
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public sealed class StandardizeCommandTests
             .Returns([]);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["st", SOLUTION_FILE]);
+        int result = await _rootCommand.Parse(["st", SOLUTION_FILE]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -110,7 +110,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["st", SOLUTION_FILE]);
+        int result = await _rootCommand.Parse(["st", SOLUTION_FILE]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -147,7 +147,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["st", SOLUTION_FILE, "--clean"]);
+        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "--clean"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -184,7 +184,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["st", SOLUTION_FILE, "--restore"]);
+        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "--restore"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -221,7 +221,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["st", SOLUTION_FILE, "--build"]);
+        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "--build"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -258,7 +258,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["st", SOLUTION_FILE, "--verbose"]);
+        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "--verbose"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -295,7 +295,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["st", SOLUTION_FILE, "--clean", "--restore", "--build", "--verbose"]);
+        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "--clean", "--restore", "--build", "--verbose"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -332,7 +332,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["st", SOLUTION_FILE, "-c", "-r", "-b", "-v"]);
+        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "-c", "-r", "-b", "-v"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -369,7 +369,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["st"]);
+        int result = await _rootCommand.Parse(["st"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -397,7 +397,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.InvokeAsync(["st", SOLUTION_FILE]);
+        int result = await _rootCommand.Parse(["st", SOLUTION_FILE]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);

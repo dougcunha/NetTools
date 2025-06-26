@@ -1,17 +1,25 @@
-﻿using System.CommandLine;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using NetTools;
 
-var rootCommand = new ServiceCollection()
-    .RegisterServices()
-    .BuildServiceProvider()
-    .CreateRootCommand();
+namespace NetTools;
 
-await rootCommand.InvokeAsync(args).ConfigureAwait(false);
-
-if (Debugger.IsAttached)
+[ExcludeFromCodeCoverage]
+file static class Program
 {
-    Console.WriteLine("Press any key to exit...");
-    Console.Read();
+    private static async Task Main(string[] args)
+    {
+        var rootCommand = new ServiceCollection()
+            .RegisterServices()
+            .BuildServiceProvider()
+            .CreateRootCommand();
+
+        await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
+
+        if (Debugger.IsAttached)
+        {
+            Console.WriteLine("Press any key to exit...");
+            Console.Read();
+        }
+    }
 }
