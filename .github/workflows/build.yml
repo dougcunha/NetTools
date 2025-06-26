@@ -10,7 +10,14 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Checkout code
@@ -40,33 +47,33 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Publish win-x64
-      run: dotnet publish -c Release -r win-x64 /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
+    - name: Publish ${{ matrix.rid }}
+      run: dotnet publish -c Release -r ${{ matrix.rid }} /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
 
     - name: Copy LICENSE to output
       if: success()
-      run: copy LICENSE NetTools/bin/Release/net9.0/win-x64/publish/
+      run: cp LICENSE NetTools/bin/Release/net9.0/${{ matrix.rid }}/publish/
 
     - name: List publish folder before zip
       if: success()
-      run: dir NetTools/bin/Release/net9.0/win-x64/publish
+      run: ls NetTools/bin/Release/net9.0/${{ matrix.rid }}/publish
 
     - name: Publish zip artifact
       if: success()
       run: |
-        cd NetTools/bin/Release/net9.0/win-x64/publish
-        del NetTools-*.zip 2>NUL
-        7z a NetTools-${{ steps.gitversion.outputs.assemblySemVer }}.win-x64.zip .\*
+        cd NetTools/bin/Release/net9.0/${{ matrix.rid }}/publish
+        rm -f NetTools-*.zip
+        zip -r NetTools-${{ steps.gitversion.outputs.assemblySemVer }}.${{ matrix.rid }}.zip ./*
 
     - name: Upload zip to workflow artifacts
       if: success()
       uses: actions/upload-artifact@v4
       with:
-        name: NetTools.win-64
-        path: NetTools/bin/Release/net9.0/win-x64/publish/NetTools-${{ steps.gitversion.outputs.assemblySemVer }}.win-x64.zip
+        name: NetTools.${{ matrix.rid }}
+        path: NetTools/bin/Release/net9.0/${{ matrix.rid }}/publish/NetTools-${{ steps.gitversion.outputs.assemblySemVer }}.${{ matrix.rid }}.zip
         if-no-files-found: ignore
         retention-days: 7
 
@@ -74,4 +81,4 @@ jobs:
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
-        files: NetTools/bin/Release/net9.0/win-x64/publish/NetTools-${{ steps.gitversion.outputs.assemblySemVer }}.win-x64.zip
+        files: NetTools/bin/Release/net9.0/${{ matrix.rid }}/publish/NetTools-${{ steps.gitversion.outputs.assemblySemVer }}.${{ matrix.rid }}.zip
