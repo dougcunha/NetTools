@@ -47,10 +47,10 @@ public sealed class RemoveCommandTests
         _command.Options.Count.ShouldBe(4);
 
         var optionNames = _command.Options.Select(static o => o.Name).ToList();
-        optionNames.ShouldContain("clean");
-        optionNames.ShouldContain("restore");
-        optionNames.ShouldContain("build");
-        optionNames.ShouldContain("verbose");
+        optionNames.ShouldContain("--clean");
+        optionNames.ShouldContain("--restore");
+        optionNames.ShouldContain("--build");
+        optionNames.ShouldContain("--verbose");
     }
 
     [Fact]
@@ -76,12 +76,12 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync
-        ([
+        var result = await rootCommand.Parse(
+        [
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -109,11 +109,11 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync([
+        var result = await rootCommand.Parse([
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -146,12 +146,12 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync
-        ([
+        var result = await rootCommand.Parse(
+        [
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -182,13 +182,13 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync
-        ([
+        var result = await rootCommand.Parse(
+        [
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE,
             "--clean"
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -225,13 +225,13 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync
-        ([
+        var result = await rootCommand.Parse(
+        [
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE,
             "--restore"
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -268,13 +268,13 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync
-        ([
+        var result = await rootCommand.Parse(
+        [
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE,
             "--build"
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -311,13 +311,13 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync
-        ([
+        var result = await rootCommand.Parse(
+        [
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE,
             "--verbose"
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -354,8 +354,8 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync
-        ([
+        var result = await rootCommand.Parse(
+        [
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE,
@@ -363,7 +363,7 @@ public sealed class RemoveCommandTests
             "--restore",
             "--build",
             "--verbose"
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -400,13 +400,13 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync
-        ([
+        var result = await rootCommand.Parse(
+        [
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE,
             "-c", "-r", "-b", "-v"
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -443,10 +443,10 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync([
+        var result = await rootCommand.Parse([
             "rm",
             PACKAGE_ID
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -484,12 +484,12 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync
-        ([
+        var result = await rootCommand.Parse(
+        [
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -522,11 +522,11 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.InvokeAsync([
+        var result = await rootCommand.Parse([
             "rm",
             PACKAGE_ID,
             SOLUTION_FILE
-        ]);
+        ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);

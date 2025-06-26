@@ -1,4 +1,5 @@
-﻿using System.CommandLine;
+using System.CommandLine;
+using System.CommandLine.Parsing;
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using NetTools;
@@ -8,7 +9,7 @@ var rootCommand = new ServiceCollection()
     .BuildServiceProvider()
     .CreateRootCommand();
 
-await rootCommand.InvokeAsync(args).ConfigureAwait(false);
+await rootCommand.Parse(args).InvokeAsync();
 
 if (Debugger.IsAttached)
 {
