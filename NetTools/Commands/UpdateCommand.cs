@@ -168,7 +168,7 @@ public sealed class UpdateCommand : Command
 
         _csprojHelpers.UpdatePackagesInProjects(projectPackages, latestVersions, selected);
 
-        if (_dotnetRunner.RunSequentialCommands
+        if  (_dotnetRunner.RunSequentialCommands
             (
                 Path.GetDirectoryName(solutionFile)!,
                 Path.GetFileName(solutionFile),
@@ -176,9 +176,10 @@ public sealed class UpdateCommand : Command
                 clean,
                 restore,
                 build
-            )
-        )
+            ))
+        {
             _console.MarkupLine("[green]Selected packages updated successfully.[/]");
+        }
 
         return true;
     }

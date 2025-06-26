@@ -116,9 +116,7 @@ public sealed class SolutionExplorer(IAnsiConsole console, IFileSystem fileSyste
             var absolutePath = Path.Combine(Path.GetDirectoryName(solutionFile)!, relativePath);
 
             if (predicate?.Invoke(absolutePath) is false)
-            {
                 continue;
-            }
 
             projectPaths.Add(relativePath);
         }

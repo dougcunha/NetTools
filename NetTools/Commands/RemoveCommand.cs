@@ -20,7 +20,8 @@ public sealed class RemoveCommand : Command
     {
         var packageIdArgument = new Argument<string>("packageId")
         {
-            Description = "The NuGet package id to remove."
+            Description = "The NuGet package id to remove.",
+            Arity = ArgumentArity.ExactlyOne
         };
 
         var solutionFileArgument = new Argument<string?>("solutionFile")
@@ -58,7 +59,7 @@ public sealed class RemoveCommand : Command
 
         SetAction(result =>
         {
-            var packageId = result.GetValue(packageIdArgument);
+            var packageId = result.GetValue(packageIdArgument)!;
             var solutionFile = result.GetValue(solutionFileArgument);
             var clean = result.GetValue(cleanOption);
             var restore = result.GetValue(restoreOption);
