@@ -11,9 +11,9 @@ namespace NetTools.Tests.Commands;
 [ExcludeFromCodeCoverage]
 public sealed class UpdateCommandTests
 {
-    private const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-    private const string SOLUTION_DIR = @"C:\TestSolution";
-    private const string PROJECT_PATH = @"Project1\Project1.csproj";
+    private const string SOLUTION_FILE = "/TestSolution/Solution.sln";
+    private const string SOLUTION_DIR = "/TestSolution";
+    private const string PROJECT_PATH = "/Project1/Project1.csproj";
     private readonly UpdateCommand _command;
 
     private readonly TestConsole _console = new();

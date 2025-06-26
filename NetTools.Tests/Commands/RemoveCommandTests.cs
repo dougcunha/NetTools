@@ -57,9 +57,9 @@ public sealed class RemoveCommandTests
     public async Task Invoke_ValidPackageAndSolution_RemovesPackageFromSelectedProjects()
     {        // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-        const string PROJECT_PATH = @"Project1\Project1.csproj";
-        const string FULL_PROJECT_PATH = @"C:\TestSolution\Project1\Project1.csproj";
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
+        const string PROJECT_PATH = "Project1/Project1.csproj";
+        const string FULL_PROJECT_PATH = "TestSolution/Project1/Project1.csproj";
 
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
 
@@ -76,12 +76,14 @@ public sealed class RemoveCommandTests
         var rootCommand = new RootCommand { _command };
 
         // Act
-        var result = await rootCommand.Parse(
-        [
-            "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE
-        ]).InvokeAsync();
+        var result = await rootCommand.Parse
+        (
+            [
+                "rm",
+                PACKAGE_ID,
+                SOLUTION_FILE
+            ]
+        ).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -94,7 +96,7 @@ public sealed class RemoveCommandTests
     {
         // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
 
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
 
@@ -125,12 +127,12 @@ public sealed class RemoveCommandTests
     public async Task Invoke_MultipleProjects_RemovesPackageFromAllSelected()
     {        // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
 
         string[] projectPaths =
         [
-            @"Project1\Project1.csproj",
-            @"Project2\Project2.csproj"
+            @"Project1/Project1.csproj",
+            @"Project2/Project2.csproj"
         ];
 
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
@@ -155,10 +157,10 @@ public sealed class RemoveCommandTests
 
         // Assert
         result.ShouldBe(0);
-        _csprojHelpers.Received(1).RemovePackageFromCsproj(@"C:\TestSolution\Project1\Project1.csproj", PACKAGE_ID);
-        _csprojHelpers.Received(1).RemovePackageFromCsproj(@"C:\TestSolution\Project2\Project2.csproj", PACKAGE_ID);
-        _console.Output.ShouldContain($"Removed '{PACKAGE_ID}' from Project1\\Project1.csproj.");
-        _console.Output.ShouldContain($"Removed '{PACKAGE_ID}' from Project2\\Project2.csproj.");
+        _csprojHelpers.Received(1).RemovePackageFromCsproj("TestSolution/Project1/Project1.csproj", PACKAGE_ID);
+        _csprojHelpers.Received(1).RemovePackageFromCsproj("TestSolution/Project2/Project2.csproj", PACKAGE_ID);
+        _console.Output.ShouldContain($"Removed '{PACKAGE_ID}' from Project1/Project1.csproj.");
+        _console.Output.ShouldContain($"Removed '{PACKAGE_ID}' from Project2/Project2.csproj.");
     }
 
     [Fact]
@@ -166,9 +168,8 @@ public sealed class RemoveCommandTests
     {
         // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-        const string PROJECT_PATH = @"Project1\Project1.csproj";
-
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
+        const string PROJECT_PATH = @"Project1/Project1.csproj";
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
 
         _solutionExplorer.DiscoverAndSelectProjects
@@ -195,7 +196,7 @@ public sealed class RemoveCommandTests
 
         _dotnetRunner.Received(1).RunSequentialCommands
         (
-            @"C:\TestSolution",
+            "TestSolution",
             "Solution.sln",
             verbose: false,
             clean: true,
@@ -209,9 +210,8 @@ public sealed class RemoveCommandTests
     {
         // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-        const string PROJECT_PATH = @"Project1\Project1.csproj";
-
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
+        const string PROJECT_PATH = @"Project1/Project1.csproj";
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
 
         _solutionExplorer.DiscoverAndSelectProjects
@@ -238,7 +238,7 @@ public sealed class RemoveCommandTests
 
         _dotnetRunner.Received(1).RunSequentialCommands
         (
-            @"C:\TestSolution",
+            "TestSolution",
             "Solution.sln",
             verbose: false,
             clean: false,
@@ -252,9 +252,8 @@ public sealed class RemoveCommandTests
     {
         // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-        const string PROJECT_PATH = @"Project1\Project1.csproj";
-
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
+        const string PROJECT_PATH = @"Project1/Project1.csproj";
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
 
         _solutionExplorer.DiscoverAndSelectProjects
@@ -281,7 +280,7 @@ public sealed class RemoveCommandTests
 
         _dotnetRunner.Received(1).RunSequentialCommands
         (
-            @"C:\TestSolution",
+            "TestSolution",
             "Solution.sln",
             false, // verbose
             false, // clean
@@ -295,9 +294,8 @@ public sealed class RemoveCommandTests
     {
         // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-        const string PROJECT_PATH = @"Project1\Project1.csproj";
-
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
+        const string PROJECT_PATH = @"Project1/Project1.csproj";
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
 
         _solutionExplorer.DiscoverAndSelectProjects
@@ -324,7 +322,7 @@ public sealed class RemoveCommandTests
 
         _dotnetRunner.Received(1).RunSequentialCommands
         (
-            @"C:\TestSolution",
+            "TestSolution",
             "Solution.sln",
             verbose: true,
             clean: false,
@@ -338,9 +336,8 @@ public sealed class RemoveCommandTests
     {
         // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-        const string PROJECT_PATH = @"Project1\Project1.csproj";
-
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
+        const string PROJECT_PATH = @"Project1/Project1.csproj";
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
 
         _solutionExplorer.DiscoverAndSelectProjects
@@ -370,7 +367,7 @@ public sealed class RemoveCommandTests
 
         _dotnetRunner.Received(1).RunSequentialCommands
         (
-            @"C:\TestSolution",
+            "TestSolution",
             "Solution.sln",
             true, // verbose
             true, // clean
@@ -384,9 +381,8 @@ public sealed class RemoveCommandTests
     {
         // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-        const string PROJECT_PATH = @"Project1\Project1.csproj";
-
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
+        const string PROJECT_PATH = @"Project1/Project1.csproj";
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
 
         _solutionExplorer.DiscoverAndSelectProjects
@@ -413,7 +409,7 @@ public sealed class RemoveCommandTests
 
         _dotnetRunner.Received(1).RunSequentialCommands
         (
-            @"C:\TestSolution",
+            "TestSolution",
             "Solution.sln",
             true, // verbose
             true, // clean
@@ -427,9 +423,8 @@ public sealed class RemoveCommandTests
     {
         // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string PROMPTED_SOLUTION = @"C:\TestSolution\FoundSolution.sln";
-        const string PROJECT_PATH = @"Project1\Project1.csproj";
-
+        const string PROMPTED_SOLUTION = "TestSolution/FoundSolution.sln";
+        const string PROJECT_PATH = @"Project1/Project1.csproj";
         _solutionExplorer.GetOrPromptSolutionFile(null).Returns(PROMPTED_SOLUTION);
 
         _solutionExplorer.DiscoverAndSelectProjects
@@ -454,7 +449,7 @@ public sealed class RemoveCommandTests
 
         _dotnetRunner.Received(1).RunSequentialCommands
         (
-            @"C:\TestSolution",
+            "TestSolution",
             "FoundSolution.sln",
             Arg.Any<bool>(),
             Arg.Any<bool>(),
@@ -468,9 +463,8 @@ public sealed class RemoveCommandTests
     {
         // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-        const string PROJECT_PATH = @"Project1\Project1.csproj";
-
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
+        const string PROJECT_PATH = @"Project1/Project1.csproj";
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
 
         _solutionExplorer.DiscoverAndSelectProjects
@@ -493,7 +487,7 @@ public sealed class RemoveCommandTests
 
         // Assert
         result.ShouldBe(0);
-        _environment.CurrentDirectory.ShouldBe(@"C:\TestSolution");
+        _environment.CurrentDirectory.ShouldBe("TestSolution");
     }
 
     [Fact]
@@ -501,10 +495,9 @@ public sealed class RemoveCommandTests
     {
         // Arrange
         const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-        const string PROJECT_PATH = @"Project1\Project1.csproj";
-        const string FULL_PROJECT_PATH = @"C:\TestSolution\Project1\Project1.csproj";
-
+        const string SOLUTION_FILE = "TestSolution/Solution.sln";
+        const string PROJECT_PATH = @"Project1/Project1.csproj";
+        const string FULL_PROJECT_PATH = "Test/olution/Project1/Project1.csproj";
         _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
 
         // Configure the predicate to be called with HasPackage check

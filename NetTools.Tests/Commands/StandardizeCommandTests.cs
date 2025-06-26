@@ -12,9 +12,9 @@ namespace NetTools.Tests.Commands;
 [ExcludeFromCodeCoverage]
 public sealed class StandardizeCommandTests
 {
-    private const string SOLUTION_FILE = @"C:\TestSolution\Solution.sln";
-    private const string SOLUTION_DIR = @"C:\TestSolution";
-    private const string PROJECT_PATH = @"Project1\Project1.csproj";
+    private const string SOLUTION_FILE = "/TestSolution/Solution.sln";
+    private const string SOLUTION_DIR = "/TestSolution";
+    private const string PROJECT_PATH = "/Project1/Project1.csproj";
     private readonly StandardizeCommand _command;    private readonly TestConsole _console = new();
     private readonly IEnvironmentService _environment = Substitute.For<IEnvironmentService>();
     private readonly INugetVersionStandardizer _standardizer = Substitute.For<INugetVersionStandardizer>();
@@ -381,7 +381,7 @@ public sealed class StandardizeCommandTests
     public async Task HandleAsync_MultipleProjects_PassesAllProjectsToStandardizer()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH, "Project2\\Project2.csproj", "Project3\\Project3.csproj" };
+        var projects = new List<string> { PROJECT_PATH, "Project2/Project2.csproj", "Project3/Project3.csproj" };
 
         _solutionExplorer
             .GetOrPromptSolutionFile(SOLUTION_FILE)
@@ -411,8 +411,8 @@ public sealed class StandardizeCommandTests
                 !options.Build
             ),
             PROJECT_PATH,
-            "Project2\\Project2.csproj",
-            "Project3\\Project3.csproj"
+            "Project2/Project2.csproj",
+            "Project3/Project3.csproj"
         );
     }
 }

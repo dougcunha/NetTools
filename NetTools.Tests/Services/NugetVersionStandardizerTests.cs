@@ -66,7 +66,7 @@ public sealed class NugetVersionStandardizerTests
     public void StandardizeVersions_NoMultiVersionPackages_LogsSuccessMessage()
     {
         // Arrange
-        const string SOLUTION_FILE = @"C:\TestSolution\MySolution.sln";
+        const string SOLUTION_FILE = "/TestSolution/MySolution.sln";
         var options = new StandardizeCommandOptions { SolutionFile = SOLUTION_FILE };
 
         // All projects have the same package versions
@@ -85,14 +85,14 @@ public sealed class NugetVersionStandardizerTests
     public void StandardizeVersions_MultiVersionPackagesFound_ShowsSelectionPrompt()
     {
         // Arrange
-        const string SOLUTION_FILE = @"C:\TestSolution\MySolution.sln";
+        const string SOLUTION_FILE = "/TestSolution/MySolution.sln";
         var options = new StandardizeCommandOptions { SolutionFile = SOLUTION_FILE };
 
         // Setup different package versions across projects
-        _csprojHelpers.GetPackagesFromCsproj(@"C:\TestSolution\project1.csproj")
+        _csprojHelpers.GetPackagesFromCsproj("/TestSolution/project1.csproj")
             .Returns(new Dictionary<string, string> { ["PkgA"] = "1.0.0", ["PkgB"] = "2.0.0" });
 
-        _csprojHelpers.GetPackagesFromCsproj(@"C:\TestSolution\project2.csproj")
+        _csprojHelpers.GetPackagesFromCsproj("/TestSolution/project2.csproj")
             .Returns(new Dictionary<string, string> { ["PkgA"] = "1.1.0", ["PkgB"] = "2.0.0" });
 
         // Mock the console prompt to return no selections (to avoid interaction)
@@ -110,7 +110,7 @@ public sealed class NugetVersionStandardizerTests
     public void StandardizeVersions_SuccessfulStandardization_RunsDotnetCommands()
     {
         // Arrange
-        const string SOLUTION_FILE = @"C:\TestSolution\MySolution.sln";
+        const string SOLUTION_FILE = "/TestSolution/MySolution.sln";
 
         var options = new StandardizeCommandOptions
         {
@@ -121,10 +121,10 @@ public sealed class NugetVersionStandardizerTests
             Verbose = false
         };
 
-        _csprojHelpers.GetPackagesFromCsproj(@"C:\TestSolution\project1.csproj")
+        _csprojHelpers.GetPackagesFromCsproj("/TestSolution/project1.csproj")
             .Returns(new Dictionary<string, string> { ["PkgA"] = "1.0.0" });
 
-        _csprojHelpers.GetPackagesFromCsproj(@"C:\TestSolution\project2.csproj")
+        _csprojHelpers.GetPackagesFromCsproj("/TestSolution/project2.csproj")
             .Returns(new Dictionary<string, string> { ["PkgA"] = "1.1.0" });
 
         // Mock selection of the package
@@ -140,7 +140,7 @@ public sealed class NugetVersionStandardizerTests
         // Assert
         _dotnetRunner.Received(1).RunSequentialCommands
         (
-            "C:\\TestSolution",
+            "/TestSolution",
             "MySolution.sln",
             false,
             true,
@@ -155,13 +155,13 @@ public sealed class NugetVersionStandardizerTests
     public void StandardizeVersions_DotnetCommandsFail_DoesNotShowSuccessMessage()
     {
         // Arrange
-        const string SOLUTION_FILE = @"C:\TestSolution\MySolution.sln";
+        const string SOLUTION_FILE = "/TestSolution/MySolution.sln";
         var options = new StandardizeCommandOptions { SolutionFile = SOLUTION_FILE };
 
-        _csprojHelpers.GetPackagesFromCsproj(@"C:\TestSolution\project1.csproj")
+        _csprojHelpers.GetPackagesFromCsproj("/TestSolution/project1.csproj")
             .Returns(new Dictionary<string, string> { ["PkgA"] = "1.0.0" });
 
-        _csprojHelpers.GetPackagesFromCsproj(@"C:\TestSolution\project2.csproj")
+        _csprojHelpers.GetPackagesFromCsproj("/TestSolution/project2.csproj")
             .Returns(new Dictionary<string, string> { ["PkgA"] = "1.1.0" });
 
         // Mock selection
@@ -179,8 +179,8 @@ public sealed class NugetVersionStandardizerTests
     }
 
     [Theory]
-    [InlineData(@"C:\TestSolution\MySolution.sln", "C:\\TestSolution")]
-    [InlineData(@"D:\Projects\Test\Solution.sln", @"D:\Projects\Test")]
+    [InlineData("/TestSolution/MySolution.sln", "/TestSolution")]
+    [InlineData("/Projects/Test/Solution.sln", "/Projects/Test")]
     [InlineData("MySolution.sln", "")]
     public void StandardizeVersions_ExtractsSolutionDirectoryCorrectly(string solutionFile, string expectedDirectory)
     {
@@ -201,10 +201,10 @@ public sealed class NugetVersionStandardizerTests
     public void StandardizeVersions_MultipleProjectsWithDifferentPackages_FindsAllMultiVersionPackages()
     {
         // Arrange
-        const string SOLUTION_FILE = @"C:\TestSolution\MySolution.sln";
+        const string SOLUTION_FILE = "/TestSolution/MySolution.sln";
         var options = new StandardizeCommandOptions { SolutionFile = SOLUTION_FILE };
 
-        _csprojHelpers.GetPackagesFromCsproj(@"C:\TestSolution\project1.csproj")
+        _csprojHelpers.GetPackagesFromCsproj("/TestSolution/project1.csproj")
             .Returns(new Dictionary<string, string>
             {
                 ["PkgA"] = "1.0.0",
@@ -212,7 +212,7 @@ public sealed class NugetVersionStandardizerTests
                 ["PkgC"] = "3.0.0"
             });
 
-        _csprojHelpers.GetPackagesFromCsproj(@"C:\TestSolution\project2.csproj")
+        _csprojHelpers.GetPackagesFromCsproj("/TestSolution/project2.csproj")
             .Returns(new Dictionary<string, string>
             {
                 ["PkgA"] = "1.1.0",  // Different version
@@ -220,7 +220,7 @@ public sealed class NugetVersionStandardizerTests
                 ["PkgD"] = "4.0.0"   // New package
             });
 
-        _csprojHelpers.GetPackagesFromCsproj(@"C:\TestSolution\project3.csproj")
+        _csprojHelpers.GetPackagesFromCsproj("/TestSolution/project3.csproj")
             .Returns(new Dictionary<string, string>
             {
                 ["PkgA"] = "1.2.0",  // Another different version
