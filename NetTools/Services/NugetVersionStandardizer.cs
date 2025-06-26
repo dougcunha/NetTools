@@ -70,7 +70,9 @@ public sealed class NugetVersionStandardizer
                 build: options.Build
             )
         )
+        {
             console.MarkupLine("[green]NuGet package versions standardized and solution cleaned/restored successfully.[/]");
+        }
     }
 
     /// <summary>

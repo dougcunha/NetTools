@@ -4,6 +4,7 @@ using NetTools.Commands;
 using NetTools.Helpers;
 using NetTools.Models;
 using NetTools.Services;
+using NetTools.Tests.Helpers;
 using Spectre.Console.Testing;
 
 namespace NetTools.Tests.Commands;
@@ -11,9 +12,9 @@ namespace NetTools.Tests.Commands;
 [ExcludeFromCodeCoverage]
 public sealed class UpdateCommandTests
 {
-    private const string SOLUTION_FILE = "/TestSolution/Solution.sln";
-    private const string SOLUTION_DIR = "/TestSolution";
-    private const string PROJECT_PATH = "/Project1/Project1.csproj";
+    private static readonly string _solutionFile = "/TestSolution/Solution.sln".NormalizePath();
+    private static readonly string _solutionDir = "/TestSolution".NormalizePath();
+    private static readonly string _projectPath = "/Project1/Project1.csproj".NormalizePath();
     private readonly UpdateCommand _command;
 
     private readonly TestConsole _console = new();
@@ -76,35 +77,35 @@ public sealed class UpdateCommandTests
     {
         // Arrange
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to check for updates:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
             .Returns([]);
 
         // Act
-        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     [Fact]
     public async Task HandleAsync_AllPackagesUpToDate_ReturnsOneAndDisplaysMessage()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         var projectPackages = new Dictionary<string, List<Package>>
         {
-            [PROJECT_PATH] = [new Package("TestPackage", "1.0.0")]
+            [_projectPath] = [new Package("TestPackage", "1.0.0")]
         };
 
         var consolidatedPackages = new Dictionary<string, string>
@@ -120,23 +121,23 @@ public sealed class UpdateCommandTests
         SetupBasicMocks(projects, projectPackages, consolidatedPackages, latestVersions);
 
         // Act
-        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
         _console.Output.ShouldContain("All packages are up to date.");
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     [Fact]
     public async Task HandleAsync_OutdatedPackagesButNoneSelected_ReturnsOneAndDisplaysMessage()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         var projectPackages = new Dictionary<string, List<Package>>
         {
-            [PROJECT_PATH] = [new Package("TestPackage", "1.0.0")]
+            [_projectPath] = [new Package("TestPackage", "1.0.0")]
         };
 
         var consolidatedPackages = new Dictionary<string, string>
@@ -163,23 +164,23 @@ public sealed class UpdateCommandTests
         _console.Input.PushKey(ConsoleKey.Enter);
 
         // Act
-        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
         _console.Output.ShouldContain("No packages selected for update.");
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     [Fact]
     public async Task HandleAsync_OutdatedPackagesSelected_UpdatesAndReturnsZero()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         var projectPackages = new Dictionary<string, List<Package>>
         {
-            [PROJECT_PATH] = [new Package("TestPackage", "1.0.0")]
+            [_projectPath] = [new Package("TestPackage", "1.0.0")]
         };
 
         var consolidatedPackages = new Dictionary<string, string>
@@ -204,14 +205,14 @@ public sealed class UpdateCommandTests
             .ReturnsForAnyArgs(outdatedPackages);
 
         _dotnetRunner
-            .RunSequentialCommands(SOLUTION_DIR, "Solution.sln")
+            .RunSequentialCommands(_solutionDir, "Solution.sln")
             .Returns(true);
 
         _console.Input.PushKey(ConsoleKey.Spacebar);
         _console.Input.PushKey(ConsoleKey.Enter);
 
         // Act
-        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
@@ -221,18 +222,18 @@ public sealed class UpdateCommandTests
             .UpdatePackagesInProjects(projectPackages, latestVersions, Arg.Any<List<(string Name, string Id)>>());
 
         _console.Output.ShouldContain("Selected packages updated successfully.");
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     [Fact]
     public async Task HandleAsync_WithIncludePrereleaseOption_PassesToNugetService()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         var projectPackages = new Dictionary<string, List<Package>>
         {
-            [PROJECT_PATH] = [new Package("TestPackage", "1.0.0")]
+            [_projectPath] = [new Package("TestPackage", "1.0.0")]
         };
 
         var consolidatedPackages = new Dictionary<string, string>
@@ -256,23 +257,23 @@ public sealed class UpdateCommandTests
             .Returns("2.0.0-beta");
 
         // Act
-        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--include-prerelease"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--include-prerelease"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
         await _nugetService.Received(1).GetLatestVersionAsync("TestPackage", true);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     [Fact]
     public async Task HandleAsync_WithCleanOption_PassesToDotnetRunner()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         var projectPackages = new Dictionary<string, List<Package>>
         {
-            [PROJECT_PATH] = [new Package("TestPackage", "1.0.0")]
+            [_projectPath] = [new Package("TestPackage", "1.0.0")]
         };
 
         var consolidatedPackages = new Dictionary<string, string>
@@ -297,29 +298,29 @@ public sealed class UpdateCommandTests
             .ReturnsForAnyArgs(outdatedPackages);
 
         _dotnetRunner
-            .RunSequentialCommands(SOLUTION_DIR, "Solution.sln", false, true)
+            .RunSequentialCommands(_solutionDir, "Solution.sln", false, true)
             .Returns(true);
 
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--clean"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--clean"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _dotnetRunner.Received(1).RunSequentialCommands(SOLUTION_DIR, "Solution.sln", false, true);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _dotnetRunner.Received(1).RunSequentialCommands(_solutionDir, "Solution.sln", false, true);
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     [Fact]
     public async Task HandleAsync_WithRestoreOption_PassesToDotnetRunner()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         var projectPackages = new Dictionary<string, List<Package>>
         {
-            [PROJECT_PATH] = [new Package("TestPackage", "1.0.0")]
+            [_projectPath] = [new Package("TestPackage", "1.0.0")]
         };
 
         var consolidatedPackages = new Dictionary<string, string>
@@ -344,29 +345,29 @@ public sealed class UpdateCommandTests
             .ReturnsForAnyArgs(outdatedPackages);
 
         _dotnetRunner
-            .RunSequentialCommands(SOLUTION_DIR, "Solution.sln", false, false, true)
+            .RunSequentialCommands(_solutionDir, "Solution.sln", false, false, true)
             .Returns(true);
 
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--restore"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--restore"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _dotnetRunner.Received(1).RunSequentialCommands(SOLUTION_DIR, "Solution.sln", false, false, true);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _dotnetRunner.Received(1).RunSequentialCommands(_solutionDir, "Solution.sln", false, false, true);
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     [Fact]
     public async Task HandleAsync_WithBuildOption_PassesToDotnetRunner()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         var projectPackages = new Dictionary<string, List<Package>>
         {
-            [PROJECT_PATH] = [new Package("TestPackage", "1.0.0")]
+            [_projectPath] = [new Package("TestPackage", "1.0.0")]
         };
 
         var consolidatedPackages = new Dictionary<string, string>
@@ -391,29 +392,29 @@ public sealed class UpdateCommandTests
             .ReturnsForAnyArgs(outdatedPackages);
 
         _dotnetRunner
-            .RunSequentialCommands(SOLUTION_DIR, "Solution.sln", false, false, false, true)
+            .RunSequentialCommands(_solutionDir, "Solution.sln", false, false, false, true)
             .Returns(true);
 
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--build"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--build"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _dotnetRunner.Received(1).RunSequentialCommands(SOLUTION_DIR, "Solution.sln", false, false, false, true);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _dotnetRunner.Received(1).RunSequentialCommands(_solutionDir, "Solution.sln", false, false, false, true);
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     [Fact]
     public async Task HandleAsync_WithVerboseOption_PassesToDotnetRunner()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         var projectPackages = new Dictionary<string, List<Package>>
         {
-            [PROJECT_PATH] = [new Package("TestPackage", "1.0.0")]
+            [_projectPath] = [new Package("TestPackage", "1.0.0")]
         };
 
         var consolidatedPackages = new Dictionary<string, string>
@@ -438,29 +439,29 @@ public sealed class UpdateCommandTests
             .ReturnsForAnyArgs(outdatedPackages);
 
         _dotnetRunner
-            .RunSequentialCommands(SOLUTION_DIR, "Solution.sln", true)
+            .RunSequentialCommands(_solutionDir, "Solution.sln", true)
             .Returns(true);
 
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--verbose"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--verbose"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _dotnetRunner.Received(1).RunSequentialCommands(SOLUTION_DIR, "Solution.sln", true);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _dotnetRunner.Received(1).RunSequentialCommands(_solutionDir, "Solution.sln", true);
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     [Fact]
     public async Task HandleAsync_WithAllOptions_PassesAllParametersCorrectly()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         var projectPackages = new Dictionary<string, List<Package>>
         {
-            [PROJECT_PATH] = [new Package("TestPackage", "1.0.0")]
+            [_projectPath] = [new Package("TestPackage", "1.0.0")]
         };
 
         var consolidatedPackages = new Dictionary<string, string>
@@ -485,7 +486,7 @@ public sealed class UpdateCommandTests
             .ReturnsForAnyArgs(outdatedPackages);
 
         _dotnetRunner
-            .RunSequentialCommands(SOLUTION_DIR, "Solution.sln", true, true, true, true)
+            .RunSequentialCommands(_solutionDir, "Solution.sln", true, true, true, true)
             .Returns(true);
 
         _nugetService
@@ -496,13 +497,13 @@ public sealed class UpdateCommandTests
         _console.Input.PushKey(ConsoleKey.Enter);
 
         // Act
-        int result = await _rootCommand.Parse(["upd", SOLUTION_FILE, "--include-prerelease", "--clean", "--restore", "--build", "--verbose"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--include-prerelease", "--clean", "--restore", "--build", "--verbose"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
         await _nugetService.Received(1).GetLatestVersionAsync("TestPackage", true);
-        _dotnetRunner.Received(1).RunSequentialCommands(SOLUTION_DIR, "Solution.sln", true, true, true, true);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _dotnetRunner.Received(1).RunSequentialCommands(_solutionDir, "Solution.sln", true, true, true, true);
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     private void SetupBasicMocks
@@ -514,13 +515,13 @@ public sealed class UpdateCommandTests
     )
     {
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to check for updates:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )

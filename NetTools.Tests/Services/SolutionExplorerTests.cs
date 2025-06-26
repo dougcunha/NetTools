@@ -2,6 +2,7 @@ using NetTools.Services;
 using Spectre.Console.Testing;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
+using NetTools.Tests.Helpers;
 
 namespace NetTools.Tests.Services;
 
@@ -22,14 +23,14 @@ public sealed class SolutionExplorerTests
     public void DiscoverAndSelectProjects_SolutionFileNotFound_ReturnsEmptyList()
     {
         // Arrange
-        const string SOLUTION_FILE = "/C/NonExisten/Solution.sln";
+        var solutionFile = "/C/NonExisten/Solution.sln".NormalizePath();
         const string MARKUP_TITLE = "Select projects";
         const string NOT_FOUND_MESSAGE = "No projects found";
 
-        _fileSystem.File.Exists(SOLUTION_FILE).Returns(false);
+        _fileSystem.File.Exists(solutionFile).Returns(false);
 
         // Act
-        var result = _explorer.DiscoverAndSelectProjects(SOLUTION_FILE, MARKUP_TITLE, NOT_FOUND_MESSAGE);
+        var result = _explorer.DiscoverAndSelectProjects(solutionFile, MARKUP_TITLE, NOT_FOUND_MESSAGE);
 
         // Assert
         result.ShouldBeEmpty();
@@ -40,7 +41,7 @@ public sealed class SolutionExplorerTests
     public void DiscoverAndSelectProjects_NoProjectsFound_ReturnsEmptyListAndShowsMessage()
     {
         // Arrange
-        const string SOLUTION_FILE = "/C/TestSolution/Solution.sln";
+        var solutionFile = "/C/TestSolution/Solution.sln".NormalizePath();
         const string MARKUP_TITLE = "Select projects";
         const string NOT_FOUND_MESSAGE = "Solution file not found or invalid.";
 
@@ -51,12 +52,12 @@ public sealed class SolutionExplorerTests
             EndProject
             """;
 
-        _fileSystem.File.Exists(SOLUTION_FILE).Returns(true);
-        _fileSystem.File.ReadLines(SOLUTION_FILE).Returns(SOLUTION_CONTENT.Split('\n'));
-        _fileSystem.Directory.GetCurrentDirectory().Returns("/C/TestSolution");
+        _fileSystem.File.Exists(solutionFile).Returns(true);
+        _fileSystem.File.ReadLines(solutionFile).Returns(SOLUTION_CONTENT.Split('\n'));
+        _fileSystem.Directory.GetCurrentDirectory().Returns("/C/TestSolution".NormalizePath());
 
         // Act
-        var result = _explorer.DiscoverAndSelectProjects(SOLUTION_FILE, MARKUP_TITLE, NOT_FOUND_MESSAGE);
+        var result = _explorer.DiscoverAndSelectProjects(solutionFile, MARKUP_TITLE, NOT_FOUND_MESSAGE);
 
         // Assert
         result.ShouldBeEmpty();
@@ -67,7 +68,7 @@ public sealed class SolutionExplorerTests
     public void DiscoverAndSelectProjects_ProjectsFoundAndSelected_ReturnsSelectedProjects()
     {
         // Arrange
-        const string SOLUTION_FILE = "/C/TestSolution/Solution.sln";
+        var solutionFile = "/C/TestSolution/Solution.sln".NormalizePath();
         const string MARKUP_TITLE = "Select projects";
         const string NOT_FOUND_MESSAGE = "No projects found";
 
@@ -80,16 +81,16 @@ public sealed class SolutionExplorerTests
             EndProject
             """;
 
-        _fileSystem.File.Exists(SOLUTION_FILE).Returns(true);
-        _fileSystem.File.ReadLines(SOLUTION_FILE).Returns(SOLUTION_CONTENT.Split('\n'));
-        _fileSystem.Directory.GetCurrentDirectory().Returns("/C/TestSolution");
+        _fileSystem.File.Exists(solutionFile).Returns(true);
+        _fileSystem.File.ReadLines(solutionFile).Returns(SOLUTION_CONTENT.Split('\n'));
+        _fileSystem.Directory.GetCurrentDirectory().Returns("/C/TestSolution".NormalizePath());
 
         // Simulate user selecting the first project
         _console.Input.PushKey(ConsoleKey.Spacebar); // Select first item
         _console.Input.PushKey(ConsoleKey.Enter);    // Confirm selection
 
         // Act
-        var result = _explorer.DiscoverAndSelectProjects(SOLUTION_FILE, MARKUP_TITLE, NOT_FOUND_MESSAGE);
+        var result = _explorer.DiscoverAndSelectProjects(solutionFile, MARKUP_TITLE, NOT_FOUND_MESSAGE);
 
         // Assert
         result.ShouldNotBeEmpty();
@@ -100,7 +101,7 @@ public sealed class SolutionExplorerTests
     public void DiscoverAndSelectProjects_WithPredicate_FiltersProjects()
     {
         // Arrange
-        const string SOLUTION_FILE = "/C/TestSolution/Solution.sln";
+        var solutionFile = "/C/TestSolution/Solution.sln".NormalizePath();
         const string MARKUP_TITLE = "Select projects";
         const string NOT_FOUND_MESSAGE = "No projects found";
 
@@ -113,9 +114,9 @@ public sealed class SolutionExplorerTests
             EndProject
             """;
 
-        _fileSystem.File.Exists(SOLUTION_FILE).Returns(true);
-        _fileSystem.File.ReadLines(SOLUTION_FILE).Returns(SOLUTION_CONTENT.Split('\n'));
-        _fileSystem.Directory.GetCurrentDirectory().Returns("/C/TestSolution");
+        _fileSystem.File.Exists(solutionFile).Returns(true);
+        _fileSystem.File.ReadLines(solutionFile).Returns(SOLUTION_CONTENT.Split('\n'));
+        _fileSystem.Directory.GetCurrentDirectory().Returns("/C/TestSolution".NormalizePath());
 
         // Predicate that excludes Project2
         static bool Predicate(string path)
@@ -124,7 +125,7 @@ public sealed class SolutionExplorerTests
         _console.Input.PushTextWithEnter(""); // No selection
 
         // Act
-        _explorer.DiscoverAndSelectProjects(SOLUTION_FILE, MARKUP_TITLE, NOT_FOUND_MESSAGE, Predicate);
+        _explorer.DiscoverAndSelectProjects(solutionFile, MARKUP_TITLE, NOT_FOUND_MESSAGE, Predicate);
 
         // Assert
         _console.Output.ShouldContain("Project1");
@@ -135,23 +136,23 @@ public sealed class SolutionExplorerTests
     public void GetOrPromptSolutionFile_SolutionFileProvided_ReturnsSameFile()
     {
         // Arrange
-        const string SOLUTION_FILE = "/C/TestSolution/Solution.sln";
+        var solutionFile = "/C/TestSolution/Solution.sln".NormalizePath();
 
         // Act
-        var result = _explorer.GetOrPromptSolutionFile(SOLUTION_FILE);
+        var result = _explorer.GetOrPromptSolutionFile(solutionFile);
 
         // Assert
-        result.ShouldBe(SOLUTION_FILE);
+        result.ShouldBe(solutionFile);
     }
 
     [Fact]
     public void GetOrPromptSolutionFile_NoSolutionFileInDirectory_ReturnsNull()
     {
         // Arrange
-        const string CURRENT_DIR = "/C/TestSolution";
+        var currentDir = "/C/TestSolution".NormalizePath();
 
-        _fileSystem.Directory.GetCurrentDirectory().Returns(CURRENT_DIR);
-        _fileSystem.Directory.GetFiles(CURRENT_DIR, "*.sln", SearchOption.TopDirectoryOnly).Returns([]);
+        _fileSystem.Directory.GetCurrentDirectory().Returns(currentDir);
+        _fileSystem.Directory.GetFiles(currentDir, "*.sln", SearchOption.TopDirectoryOnly).Returns([]);
 
         // Act
         var result = _explorer.GetOrPromptSolutionFile(null);
@@ -164,19 +165,19 @@ public sealed class SolutionExplorerTests
     public void GetOrPromptSolutionFile_OneSolutionFileInDirectory_ReturnsFoundFile()
     {
         // Arrange
-        const string CURRENT_DIR = "/C/TestSolution";
-        const string SOLUTION_FILE = "/C/TestSolution/MySolution.sln";
+        var currentDir = "/C/TestSolution".NormalizePath();
+        var solutionFile = "/C/TestSolution/MySolution.sln".NormalizePath();
 
-        _fileSystem.Directory.GetCurrentDirectory().Returns(CURRENT_DIR);
+        _fileSystem.Directory.GetCurrentDirectory().Returns(currentDir);
 
-        _fileSystem.Directory.GetFiles(CURRENT_DIR, "*.sln", SearchOption.TopDirectoryOnly)
-            .Returns([SOLUTION_FILE]);
+        _fileSystem.Directory.GetFiles(currentDir, "*.sln", SearchOption.TopDirectoryOnly)
+            .Returns([solutionFile]);
 
         // Act
         var result = _explorer.GetOrPromptSolutionFile(null);
 
         // Assert
-        result.ShouldBe(SOLUTION_FILE);
+        result.ShouldBe(solutionFile);
         _console.Output.ShouldContain("Found solution:");
         _console.Output.ShouldContain("MySolution.sln");
     }
@@ -185,16 +186,16 @@ public sealed class SolutionExplorerTests
     public void GetOrPromptSolutionFile_MultipleSolutionFiles_PromptsUserToSelect()
     {
         // Arrange
-        const string CURRENT_DIR = "/C/TestSolution";
+        var currentDir = "/C/TestSolution".NormalizePath();
 
         string[] solutionFiles = [
-            "/C/TestSolution/Solution1.sln",
-            "/C/TestSolution/Solution2.sln"
+            "/C/TestSolution/Solution1.sln".NormalizePath(),
+            "/C/TestSolution/Solution2.sln".NormalizePath()
         ];
 
-        _fileSystem.Directory.GetCurrentDirectory().Returns(CURRENT_DIR);
+        _fileSystem.Directory.GetCurrentDirectory().Returns(currentDir);
 
-        _fileSystem.Directory.GetFiles(CURRENT_DIR, "*.sln", SearchOption.TopDirectoryOnly)
+        _fileSystem.Directory.GetFiles(currentDir, "*.sln", SearchOption.TopDirectoryOnly)
             .Returns(solutionFiles);
 
         // Simulate user selecting the first solution
@@ -204,7 +205,7 @@ public sealed class SolutionExplorerTests
         var result = _explorer.GetOrPromptSolutionFile(null);
 
         // Assert
-        result.ShouldBe("/C/TestSolution/Solution1.sln");
+        result.ShouldBe("/C/TestSolution/Solution1.sln".NormalizePath());
         _console.Output.ShouldContain("Select the solution file:");
     }
 
@@ -212,38 +213,38 @@ public sealed class SolutionExplorerTests
     public void GetOrPromptSolutionFile_EmptyStringProvided_SearchesInCurrentDirectory()
     {
         // Arrange
-        const string CURRENT_DIR = "/C/TestSolution";
-        const string SOLUTION_FILE = "/C/TestSolution/MySolution.sln";
+        var currentDir = "/C/TestSolution".NormalizePath();
+        var solutionFile = "/C/TestSolution/MySolution.sln".NormalizePath();
 
-        _fileSystem.Directory.GetCurrentDirectory().Returns(CURRENT_DIR);
+        _fileSystem.Directory.GetCurrentDirectory().Returns(currentDir);
 
-        _fileSystem.Directory.GetFiles(CURRENT_DIR, "*.sln", SearchOption.TopDirectoryOnly)
-            .Returns([SOLUTION_FILE]);
+        _fileSystem.Directory.GetFiles(currentDir, "*.sln", SearchOption.TopDirectoryOnly)
+            .Returns([solutionFile]);
 
         // Act
         var result = _explorer.GetOrPromptSolutionFile("");
 
         // Assert
-        result.ShouldBe(SOLUTION_FILE);
+        result.ShouldBe(solutionFile);
     }
 
     [Fact]
     public void GetOrPromptSolutionFile_WhitespaceProvided_SearchesInCurrentDirectory()
     {
         // Arrange
-        const string CURRENT_DIR = "/C/TestSolution";
-        const string SOLUTION_FILE = "/C/TestSolution/MySolution.sln";
+        var currentDir = "/C/TestSolution".NormalizePath();
+        var solutionFile = "/C/TestSolution/MySolution.sln".NormalizePath();
 
-        _fileSystem.Directory.GetCurrentDirectory().Returns(CURRENT_DIR);
+        _fileSystem.Directory.GetCurrentDirectory().Returns(currentDir);
 
-        _fileSystem.Directory.GetFiles(CURRENT_DIR, "*.sln", SearchOption.TopDirectoryOnly)
-            .Returns([SOLUTION_FILE]);
+        _fileSystem.Directory.GetFiles(currentDir, "*.sln", SearchOption.TopDirectoryOnly)
+            .Returns([solutionFile]);
 
         // Act
         var result = _explorer.GetOrPromptSolutionFile("   ");
 
         // Assert
-        result.ShouldBe(SOLUTION_FILE);
+        result.ShouldBe(solutionFile);
     }
 
     [Theory]
@@ -253,7 +254,7 @@ public sealed class SolutionExplorerTests
     public void DiscoverProjectPaths_ValidProjectLines_ExtractsProjectPaths(string projectLine)
     {
         // Arrange
-        const string SOLUTION_FILE = "/C/TestSolution/Solution.sln";
+        var solutionFile = "/C/TestSolution/Solution.sln".NormalizePath();
         const string MARKUP_TITLE = "Select projects";
         const string NOT_FOUND_MESSAGE = "No projects found";
 
@@ -264,24 +265,24 @@ public sealed class SolutionExplorerTests
             EndProject
             """;
 
-        _fileSystem.File.Exists(SOLUTION_FILE).Returns(true);
-        _fileSystem.File.ReadLines(SOLUTION_FILE).Returns(solutionContent.Split('\n'));
-        _fileSystem.Directory.GetCurrentDirectory().Returns("/C/TestSolution");
+        _fileSystem.File.Exists(solutionFile).Returns(true);
+        _fileSystem.File.ReadLines(solutionFile).Returns(solutionContent.Split('\n'));
+        _fileSystem.Directory.GetCurrentDirectory().Returns("/C/TestSolution".NormalizePath());
 
         _console.Input.PushTextWithEnter(""); // No selection
 
         // Act
-        _explorer.DiscoverAndSelectProjects(SOLUTION_FILE, MARKUP_TITLE, NOT_FOUND_MESSAGE);
+        _explorer.DiscoverAndSelectProjects(solutionFile, MARKUP_TITLE, NOT_FOUND_MESSAGE);
 
         // Assert
-        _console.Output.ShouldContain(@"TestProject\TestProject.csproj");
+        _console.Output.ShouldContain("TestProject/TestProject.csproj".NormalizePath());
     }
 
     [Fact]
     public void DiscoverProjectPaths_InvalidProjectLine_IgnoresLine()
     {
         // Arrange
-        const string SOLUTION_FILE = "/C/TestSolution/Solution.sln";
+        var solutionFile = "/C/TestSolution/Solution.sln".NormalizePath();
         const string MARKUP_TITLE = "Select projects";
         const string NOT_FOUND_MESSAGE = "No projects found";
 
@@ -292,12 +293,12 @@ public sealed class SolutionExplorerTests
             EndProject
             """;
 
-        _fileSystem.File.Exists(SOLUTION_FILE).Returns(true);
-        _fileSystem.File.ReadLines(SOLUTION_FILE).Returns(SOLUTION_CONTENT.Split('\n'));
-        _fileSystem.Directory.GetCurrentDirectory().Returns("/C/TestSolution");
+        _fileSystem.File.Exists(solutionFile).Returns(true);
+        _fileSystem.File.ReadLines(solutionFile).Returns(SOLUTION_CONTENT.Split('\n'));
+        _fileSystem.Directory.GetCurrentDirectory().Returns("/C/TestSolution".NormalizePath());
 
         // Act
-        var result = _explorer.DiscoverAndSelectProjects(SOLUTION_FILE, MARKUP_TITLE, NOT_FOUND_MESSAGE);
+        var result = _explorer.DiscoverAndSelectProjects(solutionFile, MARKUP_TITLE, NOT_FOUND_MESSAGE);
 
         // Assert
         result.ShouldBeEmpty();

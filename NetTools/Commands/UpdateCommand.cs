@@ -75,17 +75,20 @@ public sealed class UpdateCommand : Command
         Add(buildOption);
         Add(verboseOption);
 
-        SetAction(async (result) =>
-        {
-            var solutionFile = result.GetValue(solutionFileArgument);
-            var includePrerelease = result.GetValue(includePrereleaseArgument);
-            var clean = result.GetValue(cleanOption);
-            var restore = result.GetValue(restoreOption);
-            var build = result.GetValue(buildOption);
-            var verbose = result.GetValue(verboseOption);
+        SetAction
+        (
+            result =>
+            {
+                var solutionFile = result.GetValue(solutionFileArgument);
+                var includePrerelease = result.GetValue(includePrereleaseArgument);
+                var clean = result.GetValue(cleanOption);
+                var restore = result.GetValue(restoreOption);
+                var build = result.GetValue(buildOption);
+                var verbose = result.GetValue(verboseOption);
 
-            await HandleAsync(solutionFile, includePrerelease, clean, restore, build, verbose).ConfigureAwait(false);
-        });
+                return HandleAsync(solutionFile, includePrerelease, clean, restore, build, verbose);
+            }
+        );
     }
 
     /// <summary>

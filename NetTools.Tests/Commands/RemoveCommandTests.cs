@@ -4,6 +4,7 @@ using NetTools.Services;
 using Spectre.Console.Testing;
 using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using NetTools.Tests.Helpers;
 
 namespace NetTools.Tests.Commands;
 
@@ -16,6 +17,10 @@ public sealed class RemoveCommandTests
     private readonly IDotnetCommandRunner _dotnetRunner = Substitute.For<IDotnetCommandRunner>();
     private readonly IEnvironmentService _environment = Substitute.For<IEnvironmentService>();
     private readonly RemoveCommand _command;
+    private static readonly string _packageID = "TestPackage".NormalizePath();
+    private static readonly string _solutionFile = "TestSolution/Solution.sln".NormalizePath();
+    private static readonly string _projectPath = "Project1/Project1.csproj".NormalizePath();
+    private static readonly string _fullProjectPath = "TestSolution/Project1/Project1.csproj".NormalizePath();
 
     public RemoveCommandTests()
     {
@@ -55,23 +60,19 @@ public sealed class RemoveCommandTests
 
     [Fact]
     public async Task Invoke_ValidPackageAndSolution_RemovesPackageFromSelectedProjects()
-    {        // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-        const string PROJECT_PATH = "Project1/Project1.csproj";
-        const string FULL_PROJECT_PATH = "TestSolution/Project1/Project1.csproj";
-
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+    {
+        // Arrange
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            SOLUTION_FILE,
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
-        ).Returns([PROJECT_PATH]);
+        ).Returns([_projectPath]);
 
-        _csprojHelpers.HasPackage(FULL_PROJECT_PATH, PACKAGE_ID).Returns(true);
+        _csprojHelpers.HasPackage(_fullProjectPath, _packageID).Returns(true);
 
         var rootCommand = new RootCommand { _command };
 
@@ -80,29 +81,26 @@ public sealed class RemoveCommandTests
         (
             [
                 "rm",
-                PACKAGE_ID,
-                SOLUTION_FILE
+                _packageID,
+                _solutionFile
             ]
         ).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _csprojHelpers.Received(1).RemovePackageFromCsproj(FULL_PROJECT_PATH, PACKAGE_ID);
-        _console.Output.ShouldContain($"Removed '{PACKAGE_ID}' from {PROJECT_PATH}.");
+        _csprojHelpers.Received(1).RemovePackageFromCsproj(_fullProjectPath, _packageID);
+        _console.Output.ShouldContain($"Removed '{_packageID}' from {_projectPath}.");
     }
 
     [Fact]
     public async Task Invoke_NoProjectsSelected_DoesNotRemovePackages()
     {
         // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            SOLUTION_FILE,
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
@@ -113,8 +111,8 @@ public sealed class RemoveCommandTests
         // Act
         var result = await rootCommand.Parse([
             "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE
+            _packageID,
+            _solutionFile
         ]).InvokeAsync();
 
         // Assert
@@ -125,25 +123,23 @@ public sealed class RemoveCommandTests
 
     [Fact]
     public async Task Invoke_MultipleProjects_RemovesPackageFromAllSelected()
-    {        // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-
+    {
+        // Arrange
         string[] projectPaths =
         [
-            @"Project1/Project1.csproj",
-            @"Project2/Project2.csproj"
+            "Project1/Project1.csproj".NormalizePath(),
+            "Project2/Project2.csproj".NormalizePath()
         ];
 
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            SOLUTION_FILE,
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
-        ).Returns(projectPaths.ToList());
+        ).Returns([.. projectPaths]);
 
         var rootCommand = new RootCommand { _command };
 
@@ -151,34 +147,31 @@ public sealed class RemoveCommandTests
         var result = await rootCommand.Parse(
         [
             "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE
+            _packageID,
+            _solutionFile
         ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _csprojHelpers.Received(1).RemovePackageFromCsproj("TestSolution/Project1/Project1.csproj", PACKAGE_ID);
-        _csprojHelpers.Received(1).RemovePackageFromCsproj("TestSolution/Project2/Project2.csproj", PACKAGE_ID);
-        _console.Output.ShouldContain($"Removed '{PACKAGE_ID}' from Project1/Project1.csproj.");
-        _console.Output.ShouldContain($"Removed '{PACKAGE_ID}' from Project2/Project2.csproj.");
+        _csprojHelpers.Received(1).RemovePackageFromCsproj("TestSolution/Project1/Project1.csproj".NormalizePath(), _packageID);
+        _csprojHelpers.Received(1).RemovePackageFromCsproj("TestSolution/Project2/Project2.csproj".NormalizePath(), _packageID);
+        _console.Output.ShouldContain($"Removed '{_packageID}' from Project1/Project1.csproj.".NormalizePath());
+        _console.Output.ShouldContain($"Removed '{_packageID}' from Project2/Project2.csproj.".NormalizePath());
     }
 
     [Fact]
     public async Task Invoke_WithCleanOption_RunsDotnetCommandsWithClean()
     {
         // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-        const string PROJECT_PATH = @"Project1/Project1.csproj";
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            SOLUTION_FILE,
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
-        ).Returns([PROJECT_PATH]);
+        ).Returns([_projectPath]);
 
         var rootCommand = new RootCommand { _command };
 
@@ -186,8 +179,8 @@ public sealed class RemoveCommandTests
         var result = await rootCommand.Parse(
         [
             "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE,
+            _packageID,
+            _solutionFile,
             "--clean"
         ]).InvokeAsync();
 
@@ -209,18 +202,15 @@ public sealed class RemoveCommandTests
     public async Task Invoke_WithRestoreOption_RunsDotnetCommandsWithRestore()
     {
         // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-        const string PROJECT_PATH = @"Project1/Project1.csproj";
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            SOLUTION_FILE,
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
-        ).Returns([PROJECT_PATH]);
+        ).Returns([_projectPath]);
 
         var rootCommand = new RootCommand { _command };
 
@@ -228,8 +218,8 @@ public sealed class RemoveCommandTests
         var result = await rootCommand.Parse(
         [
             "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE,
+            _packageID,
+            _solutionFile,
             "--restore"
         ]).InvokeAsync();
 
@@ -251,18 +241,15 @@ public sealed class RemoveCommandTests
     public async Task Invoke_WithBuildOption_RunsDotnetCommandsWithBuild()
     {
         // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-        const string PROJECT_PATH = @"Project1/Project1.csproj";
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            SOLUTION_FILE,
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
-        ).Returns([PROJECT_PATH]);
+        ).Returns([_projectPath]);
 
         var rootCommand = new RootCommand { _command };
 
@@ -270,8 +257,8 @@ public sealed class RemoveCommandTests
         var result = await rootCommand.Parse(
         [
             "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE,
+            _packageID,
+            _solutionFile,
             "--build"
         ]).InvokeAsync();
 
@@ -293,18 +280,15 @@ public sealed class RemoveCommandTests
     public async Task Invoke_WithVerboseOption_RunsDotnetCommandsWithVerbose()
     {
         // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-        const string PROJECT_PATH = @"Project1/Project1.csproj";
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            SOLUTION_FILE,
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
-        ).Returns([PROJECT_PATH]);
+        ).Returns([_projectPath]);
 
         var rootCommand = new RootCommand { _command };
 
@@ -312,8 +296,8 @@ public sealed class RemoveCommandTests
         var result = await rootCommand.Parse(
         [
             "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE,
+            _packageID,
+            _solutionFile,
             "--verbose"
         ]).InvokeAsync();
 
@@ -335,18 +319,15 @@ public sealed class RemoveCommandTests
     public async Task Invoke_WithAllOptions_RunsDotnetCommandsWithAllFlags()
     {
         // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-        const string PROJECT_PATH = @"Project1/Project1.csproj";
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            SOLUTION_FILE,
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
-        ).Returns([PROJECT_PATH]);
+        ).Returns([_projectPath]);
 
         var rootCommand = new RootCommand { _command };
 
@@ -354,8 +335,8 @@ public sealed class RemoveCommandTests
         var result = await rootCommand.Parse(
         [
             "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE,
+            _packageID,
+            _solutionFile,
             "--clean",
             "--restore",
             "--build",
@@ -380,18 +361,15 @@ public sealed class RemoveCommandTests
     public async Task Invoke_WithShortOptions_RunsDotnetCommandsCorrectly()
     {
         // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-        const string PROJECT_PATH = @"Project1/Project1.csproj";
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            SOLUTION_FILE,
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
-        ).Returns([PROJECT_PATH]);
+        ).Returns([_projectPath]);
 
         var rootCommand = new RootCommand { _command };
 
@@ -399,8 +377,8 @@ public sealed class RemoveCommandTests
         var result = await rootCommand.Parse(
         [
             "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE,
+            _packageID,
+            _solutionFile,
             "-c", "-r", "-b", "-v"
         ]).InvokeAsync();
 
@@ -422,25 +400,23 @@ public sealed class RemoveCommandTests
     public async Task Invoke_WithNullSolutionFile_UsesPromptedSolution()
     {
         // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string PROMPTED_SOLUTION = "TestSolution/FoundSolution.sln";
-        const string PROJECT_PATH = @"Project1/Project1.csproj";
-        _solutionExplorer.GetOrPromptSolutionFile(null).Returns(PROMPTED_SOLUTION);
+        var promptedSolution = "TestSolution/FoundSolution.sln".NormalizePath();
+        _solutionExplorer.GetOrPromptSolutionFile(null).Returns(promptedSolution);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            PROMPTED_SOLUTION,
+            promptedSolution,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
-        ).Returns([PROJECT_PATH]);
+        ).Returns([_projectPath]);
 
         var rootCommand = new RootCommand { _command };
 
         // Act
         var result = await rootCommand.Parse([
             "rm",
-            PACKAGE_ID
+            _packageID
         ]).InvokeAsync();
 
         // Assert
@@ -462,18 +438,15 @@ public sealed class RemoveCommandTests
     public async Task Invoke_ChangesCurrentDirectoryToSolutionDirectory()
     {
         // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-        const string PROJECT_PATH = @"Project1/Project1.csproj";
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         _solutionExplorer.DiscoverAndSelectProjects
         (
-            SOLUTION_FILE,
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<Func<string, bool>>()
-        ).Returns([PROJECT_PATH]);
+        ).Returns([_projectPath]);
 
         var rootCommand = new RootCommand { _command };
 
@@ -481,8 +454,8 @@ public sealed class RemoveCommandTests
         var result = await rootCommand.Parse(
         [
             "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE
+            _packageID,
+            _solutionFile
         ]).InvokeAsync();
 
         // Assert
@@ -494,35 +467,32 @@ public sealed class RemoveCommandTests
     public async Task Invoke_UsesPredicateToFilterProjectsWithPackage()
     {
         // Arrange
-        const string PACKAGE_ID = "TestPackage";
-        const string SOLUTION_FILE = "TestSolution/Solution.sln";
-        const string PROJECT_PATH = @"Project1/Project1.csproj";
-        const string FULL_PROJECT_PATH = "Test/olution/Project1/Project1.csproj";
-        _solutionExplorer.GetOrPromptSolutionFile(SOLUTION_FILE).Returns(SOLUTION_FILE);
+        _solutionExplorer.GetOrPromptSolutionFile(_solutionFile).Returns(_solutionFile);
 
         // Configure the predicate to be called with HasPackage check
-        _solutionExplorer.DiscoverAndSelectProjects(
-            SOLUTION_FILE,
+        _solutionExplorer.DiscoverAndSelectProjects
+        (
+            _solutionFile,
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Do<Func<string, bool>>(static predicate =>
             {
                 // Verify the predicate calls HasPackage
-                predicate(FULL_PROJECT_PATH);
+                predicate(_fullProjectPath);
             })
-        ).Returns([PROJECT_PATH]);
+        ).Returns([_projectPath]);
 
         var rootCommand = new RootCommand { _command };
 
         // Act
         var result = await rootCommand.Parse([
             "rm",
-            PACKAGE_ID,
-            SOLUTION_FILE
+            _packageID,
+            _solutionFile
         ]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _csprojHelpers.Received().HasPackage(FULL_PROJECT_PATH, PACKAGE_ID);
+        _csprojHelpers.Received().HasPackage(_fullProjectPath, _packageID);
     }
 }

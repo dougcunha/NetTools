@@ -1,13 +1,10 @@
-using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using NetTools.Commands;
 using NetTools.Helpers;
 using NetTools.Services;
-using Shouldly;
 using Spectre.Console;
-using Xunit;
 
 namespace NetTools.Tests;
 
@@ -189,7 +186,7 @@ public sealed class StartupTests
 
         // Assert
         rootCommand.Subcommands.Count.ShouldBe(3);
-        
+
         var commandNames = rootCommand.Subcommands.Select(c => c.Name).ToList();
         commandNames.ShouldContain("st"); // StandardizeCommand
         commandNames.ShouldContain("rm"); // RemoveCommand

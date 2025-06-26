@@ -2,19 +2,17 @@ using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using NetTools.Commands;
 using NetTools.Services;
+using NetTools.Tests.Helpers;
 using Spectre.Console.Testing;
-using NSubstitute;
-using Shouldly;
-using Xunit;
 
 namespace NetTools.Tests.Commands;
 
 [ExcludeFromCodeCoverage]
 public sealed class StandardizeCommandTests
 {
-    private const string SOLUTION_FILE = "/TestSolution/Solution.sln";
-    private const string SOLUTION_DIR = "/TestSolution";
-    private const string PROJECT_PATH = "/Project1/Project1.csproj";
+    private static readonly string _solutionFile = "/TestSolution/Solution.sln".NormalizePath();
+    private static readonly string _solutionDir = "/TestSolution".NormalizePath();
+    private static readonly string _projectPath = "/Project1/Project1.csproj".NormalizePath();
     private readonly StandardizeCommand _command;    private readonly TestConsole _console = new();
     private readonly IEnvironmentService _environment = Substitute.For<IEnvironmentService>();
     private readonly INugetVersionStandardizer _standardizer = Substitute.For<INugetVersionStandardizer>();
@@ -69,24 +67,24 @@ public sealed class StandardizeCommandTests
     {
         // Arrange
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to standardize:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
             .Returns([]);
 
         // Act
-        int result = await _rootCommand.Parse(["st", SOLUTION_FILE]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _environment.Received(1).CurrentDirectory = _solutionDir;
         _standardizer.DidNotReceive().StandardizeVersions(Arg.Any<StandardizeCommandOptions>(), Arg.Any<string[]>());
     }
 
@@ -94,36 +92,40 @@ public sealed class StandardizeCommandTests
     public async Task HandleAsync_WithProjectsSelected_CallsStandardizer()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to standardize:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", SOLUTION_FILE]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
-        _standardizer.Received(1).StandardizeVersions(
-            Arg.Is<StandardizeCommandOptions>(options => 
-                options.SolutionFile == SOLUTION_FILE &&
+        _environment.Received(1).CurrentDirectory = _solutionDir;
+
+        _standardizer.Received(1).StandardizeVersions
+        (
+            Arg.Is<StandardizeCommandOptions>
+            (
+                static options =>
+                options.SolutionFile == _solutionFile &&
                 !options.Verbose &&
                 !options.Clean &&
                 !options.Restore &&
                 !options.Build
             ),
-            PROJECT_PATH
+            _projectPath
         );
     }
 
@@ -131,36 +133,38 @@ public sealed class StandardizeCommandTests
     public async Task HandleAsync_WithCleanOption_PassesCleanToStandardizer()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to standardize:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "--clean"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "--clean"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
-        _standardizer.Received(1).StandardizeVersions(
-            Arg.Is<StandardizeCommandOptions>(options => 
-                options.SolutionFile == SOLUTION_FILE &&
+        _environment.Received(1).CurrentDirectory = _solutionDir;
+
+        _standardizer.Received(1).StandardizeVersions
+        (
+            Arg.Is<StandardizeCommandOptions>(static options =>
+                options.SolutionFile == _solutionFile &&
                 options.Clean &&
                 !options.Verbose &&
                 !options.Restore &&
                 !options.Build
             ),
-            PROJECT_PATH
+            _projectPath
         );
     }
 
@@ -168,36 +172,38 @@ public sealed class StandardizeCommandTests
     public async Task HandleAsync_WithRestoreOption_PassesRestoreToStandardizer()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to standardize:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "--restore"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "--restore"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
-        _standardizer.Received(1).StandardizeVersions(
-            Arg.Is<StandardizeCommandOptions>(options => 
-                options.SolutionFile == SOLUTION_FILE &&
+        _environment.Received(1).CurrentDirectory = _solutionDir;
+
+        _standardizer.Received(1).StandardizeVersions
+        (
+            Arg.Is<StandardizeCommandOptions>(static options =>
+                options.SolutionFile == _solutionFile &&
                 options.Restore &&
                 !options.Verbose &&
                 !options.Clean &&
                 !options.Build
             ),
-            PROJECT_PATH
+            _projectPath
         );
     }
 
@@ -205,36 +211,38 @@ public sealed class StandardizeCommandTests
     public async Task HandleAsync_WithBuildOption_PassesBuildToStandardizer()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to standardize:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "--build"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "--build"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
-        _standardizer.Received(1).StandardizeVersions(
-            Arg.Is<StandardizeCommandOptions>(options => 
-                options.SolutionFile == SOLUTION_FILE &&
+        _environment.Received(1).CurrentDirectory = _solutionDir;
+
+        _standardizer.Received(1).StandardizeVersions
+        (
+            Arg.Is<StandardizeCommandOptions>(static options =>
+                options.SolutionFile == _solutionFile &&
                 options.Build &&
                 !options.Verbose &&
                 !options.Clean &&
                 !options.Restore
             ),
-            PROJECT_PATH
+            _projectPath
         );
     }
 
@@ -242,36 +250,38 @@ public sealed class StandardizeCommandTests
     public async Task HandleAsync_WithVerboseOption_PassesVerboseToStandardizer()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to standardize:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "--verbose"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "--verbose"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
-        _standardizer.Received(1).StandardizeVersions(
-            Arg.Is<StandardizeCommandOptions>(options => 
-                options.SolutionFile == SOLUTION_FILE &&
+        _environment.Received(1).CurrentDirectory = _solutionDir;
+
+        _standardizer.Received(1).StandardizeVersions
+        (
+            Arg.Is<StandardizeCommandOptions>(static options =>
+                options.SolutionFile == _solutionFile &&
                 options.Verbose &&
                 !options.Clean &&
                 !options.Restore &&
                 !options.Build
             ),
-            PROJECT_PATH
+            _projectPath
         );
     }
 
@@ -279,36 +289,38 @@ public sealed class StandardizeCommandTests
     public async Task HandleAsync_WithAllOptions_PassesAllParametersCorrectly()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to standardize:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "--clean", "--restore", "--build", "--verbose"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "--clean", "--restore", "--build", "--verbose"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
-        _standardizer.Received(1).StandardizeVersions(
-            Arg.Is<StandardizeCommandOptions>(options => 
-                options.SolutionFile == SOLUTION_FILE &&
+        _environment.Received(1).CurrentDirectory = _solutionDir;
+
+        _standardizer.Received(1).StandardizeVersions
+        (
+            Arg.Is<StandardizeCommandOptions>(static options =>
+                options.SolutionFile == _solutionFile &&
                 options.Verbose &&
                 options.Clean &&
                 options.Restore &&
                 options.Build
             ),
-            PROJECT_PATH
+            _projectPath
         );
     }
 
@@ -316,36 +328,38 @@ public sealed class StandardizeCommandTests
     public async Task HandleAsync_WithShortOptions_PassesAllParametersCorrectly()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to standardize:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", SOLUTION_FILE, "-c", "-r", "-b", "-v"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "-c", "-r", "-b", "-v"]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
-        _standardizer.Received(1).StandardizeVersions(
-            Arg.Is<StandardizeCommandOptions>(options => 
-                options.SolutionFile == SOLUTION_FILE &&
+        _environment.Received(1).CurrentDirectory = _solutionDir;
+
+        _standardizer.Received(1).StandardizeVersions
+        (
+            Arg.Is<StandardizeCommandOptions>(static options =>
+                options.SolutionFile == _solutionFile &&
                 options.Verbose &&
                 options.Clean &&
                 options.Restore &&
                 options.Build
             ),
-            PROJECT_PATH
+            _projectPath
         );
     }
 
@@ -353,16 +367,16 @@ public sealed class StandardizeCommandTests
     public async Task HandleAsync_WithNullSolutionFile_CallsGetOrPromptSolutionFile()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH };
+        var projects = new List<string> { _projectPath };
 
         _solutionExplorer
             .GetOrPromptSolutionFile(null)
-            .Returns(SOLUTION_FILE);
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to standardize:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
@@ -374,45 +388,46 @@ public sealed class StandardizeCommandTests
         // Assert
         result.ShouldBe(0);
         _solutionExplorer.Received(1).GetOrPromptSolutionFile(null);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _environment.Received(1).CurrentDirectory = _solutionDir;
     }
 
     [Fact]
     public async Task HandleAsync_MultipleProjects_PassesAllProjectsToStandardizer()
     {
         // Arrange
-        var projects = new List<string> { PROJECT_PATH, "Project2/Project2.csproj", "Project3/Project3.csproj" };
+        var projects = new List<string> { _projectPath, "Project2/Project2.csproj".NormalizePath(), "Project3/Project3.csproj".NormalizePath() };
 
         _solutionExplorer
-            .GetOrPromptSolutionFile(SOLUTION_FILE)
-            .Returns(SOLUTION_FILE);
+            .GetOrPromptSolutionFile(_solutionFile)
+            .Returns(_solutionFile);
 
         _solutionExplorer
             .DiscoverAndSelectProjects
             (
-                SOLUTION_FILE,
+                _solutionFile,
                 "[green]Select the projects to standardize:[/]",
                 "[yellow]No .csproj files found in the solution file.[/]"
             )
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", SOLUTION_FILE]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile]).InvokeAsync();
 
         // Assert
         result.ShouldBe(0);
-        _environment.Received(1).CurrentDirectory = SOLUTION_DIR;
+        _environment.Received(1).CurrentDirectory = _solutionDir;
+
         _standardizer.Received(1).StandardizeVersions(
-            Arg.Is<StandardizeCommandOptions>(options => 
-                options.SolutionFile == SOLUTION_FILE &&
+            Arg.Is<StandardizeCommandOptions>(static options =>
+                options.SolutionFile == _solutionFile &&
                 !options.Verbose &&
                 !options.Clean &&
                 !options.Restore &&
                 !options.Build
             ),
-            PROJECT_PATH,
-            "Project2/Project2.csproj",
-            "Project3/Project3.csproj"
+            _projectPath,
+            "Project2/Project2.csproj".NormalizePath(),
+            "Project3/Project3.csproj".NormalizePath()
         );
     }
 }
