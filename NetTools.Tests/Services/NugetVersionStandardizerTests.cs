@@ -239,4 +239,35 @@ public sealed class NugetVersionStandardizerTests
         _console.Output.ShouldNotContain("PkgB"); // Same version across projects
         _console.Output.ShouldNotContain("PkgD"); // Only in one project
     }
+
+    [Fact]
+    public void StandardizeVersions_FixedVersionNotationIsGreatest_UpdatesToFixedVersion()
+    {
+        // Arrange
+        var solutionFile = "/TestSolution/MySolution.sln".NormalizePath();
+        var options = new StandardizeCommandOptions { SolutionFile = solutionFile };
+
+        var project1 = "/TestSolution/project1.csproj".NormalizePath();
+        var project2 = "/TestSolution/project2.csproj".NormalizePath();
+
+        _csprojHelpers.GetPackagesFromCsproj(project1)
+            .Returns(new Dictionary<string, string> { ["PkgA"] = "1.0.0" });
+
+        _csprojHelpers.GetPackagesFromCsproj(project2)
+            .Returns(new Dictionary<string, string> { ["PkgA"] = "[2.0.0]" });
+
+        // Mock selection of the package
+        _console.Input.PushKey(ConsoleKey.Spacebar);
+        _console.Input.PushKey(ConsoleKey.Enter);
+
+        _dotnetRunner.RunSequentialCommands(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<bool>())
+            .Returns(true);
+
+        // Act
+        _standardizer.StandardizeVersions(options, "project1.csproj", "project2.csproj");
+
+        // Assert
+        _csprojHelpers.Received(1).UpdatePackageVersionInCsproj(project1, "PkgA", "[2.0.0]");
+        _csprojHelpers.DidNotReceive().UpdatePackageVersionInCsproj(project2, "PkgA", Arg.Any<string>());
+    }
 }

@@ -223,4 +223,31 @@ public sealed class NugetVersionComparerTests
         // Assert
         result.ShouldBeTrue();
     }
+
+    [Theory]
+    [InlineData("[1.0.0]", "2.0.0", "2.0.0")]
+    [InlineData("2.0.0", "[1.0.0]", "2.0.0")]
+    [InlineData("[1.0.0]", "[2.0.0]", "[2.0.0]")]
+    [InlineData("[2.0.0]", "[1.0.0]", "[2.0.0]")]
+    [InlineData("[1.0.0]", "[1.0.0]", "[1.0.0]")]
+    public void GetGreaterVersion_FixedVersionNotation_ReturnsGreaterVersion(string version1, string version2, string expected)
+    {
+        // Act
+        var result = NugetVersionComparer.GetGreaterVersion(version1, version2);
+
+        // Assert
+        result.ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData("[1.0.0]", false)]
+    [InlineData("[1.0.0-alpha]", true)]
+    public void IsPrerelease_FixedVersionNotation_ReturnsCorrectResult(string version, bool expected)
+    {
+        // Act
+        var result = NugetVersionComparer.IsPrerelease(version);
+
+        // Assert
+        result.ShouldBe(expected);
+    }
 }

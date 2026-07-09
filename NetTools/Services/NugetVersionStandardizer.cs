@@ -46,6 +46,7 @@ public sealed class NugetVersionStandardizer
                 .Title("[yellow]Select the packages with multiple versions to standardize:[/]")
                 .NotRequired()
                 .PageSize(20)
+                .UseConverter(static choice => Markup.Escape(choice))
                 .MoreChoicesText("[grey](Use space to select, enter to confirm)[/]")
                 .InstructionsText("[grey](Press [blue]<space>[/] to select, [green]<enter>[/] to confirm)[/]")
                 .AddChoiceGroup("Select all", choices.Order())
@@ -131,8 +132,9 @@ public sealed class NugetVersionStandardizer
                 {
                     var packageId = selectedDisplay.Split(' ')[0];
 
-                    var maxVersion = multiVersionPackages[packageId].OrderByDescending(static v => v, StringComparer.OrdinalIgnoreCase)
-                        .First(static v => !v.Equals("Unknown", StringComparison.OrdinalIgnoreCase));
+                    var maxVersion = multiVersionPackages[packageId]
+                        .Where(static v => !v.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+                        .Aggregate(NugetVersionComparer.GetGreaterVersion);
 
                     foreach (var (csprojPath, pkgs) in projectPackageMap)
                     {
@@ -140,7 +142,7 @@ public sealed class NugetVersionStandardizer
                             continue;
 
                         csprojHelpers.UpdatePackageVersionInCsproj(csprojPath, packageId, maxVersion);
-                        console.MarkupLine($"[green]Updated » {packageId} in {Path.GetFileName(csprojPath)} to version {maxVersion}.[/]");
+                        console.MarkupLine($"[green]Updated » {Markup.Escape(packageId)} in {Markup.Escape(Path.GetFileName(csprojPath))} to version {Markup.Escape(maxVersion)}.[/]");
                     }
                 }
             });

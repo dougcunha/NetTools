@@ -12,8 +12,8 @@ public static class NugetVersionComparer
     /// <returns>The greater version.</returns>
     public static string GetGreaterVersion(string version1, string version2)
     {
-        var v1 = NuGetVersion.Parse(version1);
-        var v2 = NuGetVersion.Parse(version2);
+        var v1 = ParseVersion(version1);
+        var v2 = ParseVersion(version2);
 
         return v1 > v2 ? version1 : version2;
     }
@@ -25,10 +25,21 @@ public static class NugetVersionComparer
     /// <returns>
     /// True if the version is a prerelease version; otherwise, false.
     /// </returns>
-    public static bool IsPrerelease(string version)
-    {
-        var parsedNuGetVersion = NuGetVersion.Parse(version);
+    public static bool IsPrerelease(string version) => ParseVersion(version).IsPrerelease;
 
-        return parsedNuGetVersion.IsPrerelease;
+    /// <summary>
+    /// Parses a NuGet version string, supporting both plain versions (e.g. "1.2.3") and fixed
+    /// version range notation (e.g. "[1.2.3]") used to pin an exact package version.
+    /// </summary>
+    /// <param name="version">The version string to parse.</param>
+    /// <returns>The parsed <see cref="NuGetVersion"/>.</returns>
+    private static NuGetVersion ParseVersion(string version)
+    {
+        if (NuGetVersion.TryParse(version, out var parsedVersion))
+            return parsedVersion;
+
+        var range = VersionRange.Parse(version);
+
+        return range.MinVersion ?? throw new ArgumentException($"'{version}' is not a valid version string.", nameof(version));
     }
 }
