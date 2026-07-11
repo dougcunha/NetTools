@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags: [ '*' ]
-  workflow_dispatch:  
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -40,11 +40,11 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
+    - name: Test
+      run: dotnet test --verbosity normal
+
     - name: Publish win-x64
       run: dotnet publish -c Release -r win-x64 /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
-
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
 
     - name: Copy LICENSE to output
       if: success()
