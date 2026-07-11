@@ -80,7 +80,7 @@ public sealed class StandardizeCommandTests
             .Returns([]);
 
         // Act
-        int result = await _rootCommand.Parse(["st", _solutionFile]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -108,7 +108,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", _solutionFile]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -149,7 +149,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", _solutionFile, "--clean"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "--clean"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -188,7 +188,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", _solutionFile, "--restore"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "--restore"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -227,7 +227,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", _solutionFile, "--build"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "--build"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -266,7 +266,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", _solutionFile, "--verbose"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "--verbose"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -305,7 +305,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", _solutionFile, "--clean", "--restore", "--build", "--verbose"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "--clean", "--restore", "--build", "--verbose"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -344,7 +344,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", _solutionFile, "-c", "-r", "-b", "-v"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile, "-c", "-r", "-b", "-v"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -383,7 +383,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -411,7 +411,7 @@ public sealed class StandardizeCommandTests
             .Returns(projects);
 
         // Act
-        int result = await _rootCommand.Parse(["st", _solutionFile]).InvokeAsync();
+        int result = await _rootCommand.Parse(["st", _solutionFile]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);

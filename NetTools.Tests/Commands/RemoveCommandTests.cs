@@ -84,7 +84,7 @@ public sealed class RemoveCommandTests
                 _packageID,
                 _solutionFile
             ]
-        ).InvokeAsync();
+        ).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -113,7 +113,7 @@ public sealed class RemoveCommandTests
             "rm",
             _packageID,
             _solutionFile
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -149,7 +149,7 @@ public sealed class RemoveCommandTests
             "rm",
             _packageID,
             _solutionFile
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -182,7 +182,7 @@ public sealed class RemoveCommandTests
             _packageID,
             _solutionFile,
             "--clean"
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -221,7 +221,7 @@ public sealed class RemoveCommandTests
             _packageID,
             _solutionFile,
             "--restore"
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -260,7 +260,7 @@ public sealed class RemoveCommandTests
             _packageID,
             _solutionFile,
             "--build"
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -299,7 +299,7 @@ public sealed class RemoveCommandTests
             _packageID,
             _solutionFile,
             "--verbose"
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -341,7 +341,7 @@ public sealed class RemoveCommandTests
             "--restore",
             "--build",
             "--verbose"
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -380,7 +380,7 @@ public sealed class RemoveCommandTests
             _packageID,
             _solutionFile,
             "-c", "-r", "-b", "-v"
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -417,7 +417,7 @@ public sealed class RemoveCommandTests
         var result = await rootCommand.Parse([
             "rm",
             _packageID
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -456,7 +456,7 @@ public sealed class RemoveCommandTests
             "rm",
             _packageID,
             _solutionFile
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -489,7 +489,7 @@ public sealed class RemoveCommandTests
             "rm",
             _packageID,
             _solutionFile
-        ]).InvokeAsync();
+        ]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);

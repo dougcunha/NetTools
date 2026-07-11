@@ -90,7 +90,7 @@ public sealed class UpdateCommandTests
             .Returns([]);
 
         // Act
-        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -121,7 +121,7 @@ public sealed class UpdateCommandTests
         SetupBasicMocks(projects, projectPackages, consolidatedPackages, latestVersions);
 
         // Act
-        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -164,7 +164,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushKey(ConsoleKey.Enter);
 
         // Act
-        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -212,7 +212,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushKey(ConsoleKey.Enter);
 
         // Act
-        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -257,7 +257,7 @@ public sealed class UpdateCommandTests
             .Returns("2.0.0-beta");
 
         // Act
-        int result = await _rootCommand.Parse(["upd", _solutionFile, "--include-prerelease"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--include-prerelease"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -304,7 +304,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.Parse(["upd", _solutionFile, "--clean"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--clean"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -351,7 +351,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.Parse(["upd", _solutionFile, "--restore"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--restore"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -398,7 +398,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.Parse(["upd", _solutionFile, "--build"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--build"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -445,7 +445,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushTextWithEnter(" ");
 
         // Act
-        int result = await _rootCommand.Parse(["upd", _solutionFile, "--verbose"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--verbose"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
@@ -497,7 +497,7 @@ public sealed class UpdateCommandTests
         _console.Input.PushKey(ConsoleKey.Enter);
 
         // Act
-        int result = await _rootCommand.Parse(["upd", _solutionFile, "--include-prerelease", "--clean", "--restore", "--build", "--verbose"]).InvokeAsync();
+        int result = await _rootCommand.Parse(["upd", _solutionFile, "--include-prerelease", "--clean", "--restore", "--build", "--verbose"]).InvokeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(0);
