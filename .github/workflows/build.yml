@@ -44,7 +44,7 @@ jobs:
       run: dotnet test --verbosity normal
 
     - name: Publish win-x64
-      run: dotnet publish -c Release -r win-x64 /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
+      run: dotnet publish NetTools/NetTools.csproj -c Release -r win-x64 /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
 
     - name: Copy LICENSE to output
       if: success()
