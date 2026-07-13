@@ -159,7 +159,7 @@ public sealed class CsprojHelpersTests
         // Assert
         _xmlService.Received(1)
             .WriteTo(PATH,
-                Arg.Is<string>(static s => s.Contains("Other") && !s.Contains("PkgRem")),
+                Arg.Is<string>(static s => s!.Contains("Other") && !s.Contains("PkgRem")),
                 Arg.Any<XmlWriterSettings>());
     }
 
@@ -258,7 +258,7 @@ public sealed class CsprojHelpersTests
         // Assert
         _xmlService.Received(1)
             .WriteTo(PATH,
-                Arg.Is<string>(s => s.Contains("Version=\"2.0.0\"")),
+                Arg.Is<string>(s => s!.Contains("Version=\"2.0.0\"")),
                 Arg.Any<XmlWriterSettings>());
     }
 
@@ -285,7 +285,7 @@ public sealed class CsprojHelpersTests
         // Assert
         _xmlService.Received(1)
             .WriteTo(PATH,
-                Arg.Is<string>(s => s.Contains("<Version>3.0.0</Version>")),
+                Arg.Is<string>(s => s!.Contains("<Version>3.0.0</Version>")),
                 Arg.Any<XmlWriterSettings>());
     }
 

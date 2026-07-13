@@ -119,7 +119,7 @@ public sealed class StandardizeCommandTests
             Arg.Is<StandardizeCommandOptions>
             (
                 static options =>
-                options.SolutionFile == _solutionFile &&
+                options!.SolutionFile == _solutionFile &&
                 !options.Verbose &&
                 !options.Clean &&
                 !options.Restore &&
@@ -158,7 +158,7 @@ public sealed class StandardizeCommandTests
         _standardizer.Received(1).StandardizeVersions
         (
             Arg.Is<StandardizeCommandOptions>(static options =>
-                options.SolutionFile == _solutionFile &&
+                options!.SolutionFile == _solutionFile &&
                 options.Clean &&
                 !options.Verbose &&
                 !options.Restore &&
@@ -197,7 +197,7 @@ public sealed class StandardizeCommandTests
         _standardizer.Received(1).StandardizeVersions
         (
             Arg.Is<StandardizeCommandOptions>(static options =>
-                options.SolutionFile == _solutionFile &&
+                options!.SolutionFile == _solutionFile &&
                 options.Restore &&
                 !options.Verbose &&
                 !options.Clean &&
@@ -236,7 +236,7 @@ public sealed class StandardizeCommandTests
         _standardizer.Received(1).StandardizeVersions
         (
             Arg.Is<StandardizeCommandOptions>(static options =>
-                options.SolutionFile == _solutionFile &&
+                options!.SolutionFile == _solutionFile &&
                 options.Build &&
                 !options.Verbose &&
                 !options.Clean &&
@@ -275,7 +275,7 @@ public sealed class StandardizeCommandTests
         _standardizer.Received(1).StandardizeVersions
         (
             Arg.Is<StandardizeCommandOptions>(static options =>
-                options.SolutionFile == _solutionFile &&
+                options!.SolutionFile == _solutionFile &&
                 options.Verbose &&
                 !options.Clean &&
                 !options.Restore &&
@@ -314,7 +314,7 @@ public sealed class StandardizeCommandTests
         _standardizer.Received(1).StandardizeVersions
         (
             Arg.Is<StandardizeCommandOptions>(static options =>
-                options.SolutionFile == _solutionFile &&
+                options!.SolutionFile == _solutionFile &&
                 options.Verbose &&
                 options.Clean &&
                 options.Restore &&
@@ -353,7 +353,7 @@ public sealed class StandardizeCommandTests
         _standardizer.Received(1).StandardizeVersions
         (
             Arg.Is<StandardizeCommandOptions>(static options =>
-                options.SolutionFile == _solutionFile &&
+                options!.SolutionFile == _solutionFile &&
                 options.Verbose &&
                 options.Clean &&
                 options.Restore &&
@@ -419,7 +419,7 @@ public sealed class StandardizeCommandTests
 
         _standardizer.Received(1).StandardizeVersions(
             Arg.Is<StandardizeCommandOptions>(static options =>
-                options.SolutionFile == _solutionFile &&
+                options!.SolutionFile == _solutionFile &&
                 !options.Verbose &&
                 !options.Clean &&
                 !options.Restore &&

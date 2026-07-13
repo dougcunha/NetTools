@@ -46,7 +46,7 @@ public sealed class DotnetCommandRunnerTests
         _console.Output.ShouldContain("Cleaning the solution...");
 
         _processRunner.Received(1).Run(
-            Arg.Is<ProcessStartInfo>(static p => p.Arguments == "clean" && p.WorkingDirectory == SOLUTION_DIR),
+            Arg.Is<ProcessStartInfo>(static p => p!.Arguments == "clean" && p.WorkingDirectory == SOLUTION_DIR),
             Arg.Any<DataReceivedEventHandler>(),
             Arg.Any<DataReceivedEventHandler>());
     }
@@ -68,7 +68,7 @@ public sealed class DotnetCommandRunnerTests
         _console.Output.ShouldContain("Restoring the solution...");
 
         _processRunner.Received(1).Run(
-            Arg.Is<ProcessStartInfo>(static p => p.Arguments == "restore" && p.WorkingDirectory == SOLUTION_DIR),
+            Arg.Is<ProcessStartInfo>(static p => p!.Arguments == "restore" && p.WorkingDirectory == SOLUTION_DIR),
             Arg.Any<DataReceivedEventHandler>(),
             Arg.Any<DataReceivedEventHandler>());
     }
@@ -90,7 +90,7 @@ public sealed class DotnetCommandRunnerTests
         _console.Output.ShouldContain("Building the solution...");
 
         _processRunner.Received(1).Run(
-            Arg.Is<ProcessStartInfo>(static p => p.Arguments == "build" && p.WorkingDirectory == SOLUTION_DIR),
+            Arg.Is<ProcessStartInfo>(static p => p!.Arguments == "build" && p.WorkingDirectory == SOLUTION_DIR),
             Arg.Any<DataReceivedEventHandler>(),
             Arg.Any<DataReceivedEventHandler>());
     }
@@ -202,7 +202,7 @@ public sealed class DotnetCommandRunnerTests
 
         _processRunner.Received(1).Run
         (
-            Arg.Is<ProcessStartInfo>(static p => p.Arguments == $"clean \"{SOLUTION_FILE}\""),
+            Arg.Is<ProcessStartInfo>(static p => p!.Arguments == $"clean \"{SOLUTION_FILE}\""),
             Arg.Any<DataReceivedEventHandler>(),
             Arg.Any<DataReceivedEventHandler>()
         );
